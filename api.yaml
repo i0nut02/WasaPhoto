@@ -16,6 +16,9 @@ info:
       - Search for other users
         
   version: "1.0.0"
+  contact:
+    name: Ionut Radu Barbalata
+    email: barbalata.2002688@studenti.uniroma1.it
   
 components:
   securitySchemes:
@@ -47,7 +50,7 @@ components:
       description: |
         Represent a possible name of a User.
       type: string
-      pattern: '^[a-zA-Z0-9_.-]{3,20}$'
+      pattern: '^[a-zA-Z0-9_.]{3,20}$'
       example: "Ionut_02"
       minLength: 3
       maxLength: 20
@@ -62,12 +65,31 @@ components:
         username:
           $ref: "#/components/schemas/Username"
     
+    Photo:
+      title: Photo
+      type: object
+      description: An object that contain the identifier of the photo and the file
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        file:
+          description: A binary file that represent the image
+          type: string
+          format: binary
+          minLength: 0
+          maxLength: 30_000_000 # 30 MB
+    
+    LikedPhoto:
+      title: Like status
+      description: if True then you liked it
+      type: boolean
+        
     Post:
       title: Post
       type: object
       description: An object that rapresent a post
       properties:
-        upload-time:
+        uploadTime:
           description: Time when was uploaded the post
           type: string
           format: date-time
@@ -75,14 +97,65 @@ components:
 
         author:
           $ref: "#/components/schemas/Username"
+        
+        photo:
+          $ref: "#/components/schemas/Photo"
+        
+        numLikes:
+          description: number of likes of the photo
+          type: integer
+          minimum: 0
+        
+        numComments:
+          description: number of comments of the photo
+          type: integer
+          minimum: 0
+        
+        likedPhoto:
+          $ref: "#/components/schemas/LikedPhoto"
           
-    Stream:
+    Posts:
       title: Stream
       type: array
       description: An array of posts
       items:
         $ref: "#/components/schemas/Post"
-          
+    
+    Profile:
+      title: Profile
+      type: object
+      description: |
+        Contain relevant information about a user
+          and his history in WasaPhoto
+      properties:
+        username:
+          $ref: "#/components/schemas/Username"
+        
+        numPhotos:
+          description: number of photos of the user
+          type: integer
+          minimum: 0
+        
+        numFollowers:
+          description: | 
+            number of users that follow
+            the user with the username
+          type: integer
+          minimum: 0
+        
+        numFollowed:
+          description: | 
+            number of users that the
+            user with the username follow
+          type: integer
+          minimum: 0
+        
+        following:
+          description: |
+            true if the user that request the
+            profile is following him
+          type: boolean
+        
 paths:
   /session:
     post:
@@ -143,10 +216,13 @@ paths:
           default: 10
     
     get:
+      tags: ["user"]
       operationId: getMyStream
       summary: Get the stream of the user with the username
       description: |
-        Return a list containg the posts of the followed users from the ser with the username by cronological order and filtering the ones escluded by the query
+        Return a list containg the posts of the followed users from 
+        the user with the username by cronological order and filtering 
+        the ones escluded by the query
       security:
         - bearerAuth: []
       responses:
@@ -155,6 +231,99 @@ paths:
           content: 
             application/json:
               schema:
-                $ref: "#/components/schemas/Stream"
+                $ref: "#/components/schemas/Posts"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
       
+  /users/{username}/profile/:
+    parameters:
+      - name: username
+        description: The username of the one to get the profile
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/Username"
+      
+    get:
+      tags: ["user"]
+      operationId: getUserProfile
+      summary: Get the profile information about the 
+      description: |
+        Get the profile of the user with the username, and
+          check if the user who make the request is banned or
+          not from the user with the input username
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Succesfuly returned the user's profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    
+    put:
+      tags: ["user"]
+      operationId: setMyUserName
+      summary: |
+        Replace the current username with the new one
+      description: | 
+        Replace the current username with the new one 
+          if the user that request it have the same
+          input username
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: |
+          The new username of the user.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Username"
+      responses:
+        "200": 
+          description: Username set succesfully
+        "400":
+          description: |
+            The username must contain just alphanumeric
+              characters, dots and undercores.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/responses/BadRequest"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    
           
+  /users/{username}/profile/posts:
+    parameters:
+      - name: username
+        description: The username of the one to get the posts
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/Username"
+    get:
+      tags: ["user"]
+      operationId: getUserPosts
+      summary: Get the user Posts
+      description: | 
+        Get the posts of the user and verify if the
+          user of this session is banned or not
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Succesfully get the user's photo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Posts"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
