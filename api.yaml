@@ -1,0 +1,160 @@
+openapi: 3.0.3
+
+info:
+  title: WASAPhoto API Specification
+  description: |-
+      This OpenAPI document describes a set of interfaces to allow a WASAPhoto user to:
+      - See a stream of posts
+      - Add and remove likes from posts
+      - Interact with the posts with comments
+      - Allow the author to remove comments
+      - Ban and unban other users
+      - See their personal profile
+      - Set the username
+      - Add and remove personal posts
+      - Follow and unfollow other users
+      - Search for other users
+        
+  version: "1.0.0"
+  
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      
+  responses:
+    Unauthorized:
+      description: The access token is missing or it's expired.
+    BadRequest:
+      description: The request was not compliant with the documentation (eg. missing fields, etc).
+    InternalServerError:
+      description: The server encountered an internal error. Further info in server logs
+  
+  schemas:
+    UUID:
+      title: Universally Unique Identifier
+      description: |
+        A random based UUID used to identify UserID, PhotoID, and more.
+      type: string
+      pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+      example: "550e8400-e29b-41d4-a716-446655440001"
+      minLength: 36
+      maxLength: 36
+    
+    Username:
+      title: Username
+      description: |
+        Represent a possible name of a User.
+      type: string
+      pattern: '^[a-zA-Z0-9_.-]{3,20}$'
+      example: "Ionut_02"
+      minLength: 3
+      maxLength: 20
+
+    User:
+      title: User
+      description: User schema
+      type: object
+      properties: 
+        identifier:
+          $ref: "#/components/schemas/UUID"
+        username:
+          $ref: "#/components/schemas/Username"
+    
+    Post:
+      title: Post
+      type: object
+      description: An object that rapresent a post
+      properties:
+        upload-time:
+          description: Time when was uploaded the post
+          type: string
+          format: date-time
+          example: "2017-07-21T17:32:28Z"
+
+        author:
+          $ref: "#/components/schemas/Username"
+          
+    Stream:
+      title: Stream
+      type: array
+      description: An array of posts
+      items:
+        $ref: "#/components/schemas/Post"
+          
+paths:
+  /session:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Username"
+        required: true
+        
+      responses:
+        '201':
+          description: User log-in action successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '400':
+          description: Invalid username format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/responses/BadRequest"
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        
+  /users/{username}/stream:
+    parameters:
+      - name: username
+        description: the username of the stream's owner
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/Username"
+      - name: from
+        description: the number of posts to skip to send
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: max_quantity
+        description: the number of posts to send
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+    
+    get:
+      operationId: getMyStream
+      summary: Get the stream of the user with the username
+      description: |
+        Return a list containg the posts of the followed users from the ser with the username by cronological order and filtering the ones escluded by the query
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Succesfuly returned the user's stream
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stream"
+      
+          
