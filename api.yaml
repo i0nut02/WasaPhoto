@@ -51,11 +51,14 @@ components:
       title: Username
       description: |
         Represent a possible name of a User.
-      type: string
-      pattern: '^[a-zA-Z0-9_.]{3,20}$'
-      example: "Ionut_02"
-      minLength: 3
-      maxLength: 20
+      type: object 
+      properties:
+        username_string:
+          type: string
+          pattern: '^[a-zA-Z0-9_.]{3,20}$'
+          example: "Ionut_02"
+          minLength: 3
+          maxLength: 20
 
     User:
       title: User
@@ -70,9 +73,12 @@ components:
     UserList:
       title: User list
       description: represent a list of users
-      type: array
-      items:
-        $ref: "#/components/schemas/Username"
+      type: object  
+      properties:
+        usernames:
+          type: array
+          items:
+            $ref: "#/components/schemas/Username"
     
     Photo:
       title: Photo
@@ -86,7 +92,7 @@ components:
           type: string
           format: binary
           minLength: 0
-          maxLength: 30_000_000 # 30 MB
+          maxLength: 30000000 # 30 MB
     
     LikedPhoto:
       title: Like status
@@ -98,7 +104,7 @@ components:
       type: object
       description: An object that rapresent a post
       properties:
-        uploadTime:
+        upload_time:
           description: Time when was uploaded the post
           type: string
           format: date-time
@@ -110,25 +116,28 @@ components:
         photo:
           $ref: "#/components/schemas/Photo"
         
-        numLikes:
+        num_likes:
           description: number of likes of the photo
           type: integer
           minimum: 0
         
-        numComments:
+        num_comments:
           description: number of comments of the photo
           type: integer
           minimum: 0
         
-        likedPhoto:
+        liked_photo:
           $ref: "#/components/schemas/LikedPhoto"
           
     Posts:
-      title: Stream
-      type: array
+      title: Posts
       description: An array of posts
-      items:
-        $ref: "#/components/schemas/Post"
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Post"
     
     Profile:
       title: Profile
@@ -140,19 +149,19 @@ components:
         username:
           $ref: "#/components/schemas/Username"
         
-        numPhotos:
+        num_photos:
           description: number of photos of the user
           type: integer
           minimum: 0
         
-        numFollowers:
+        num_followers:
           description: | 
             number of users that follow
             the user with the username
           type: integer
           minimum: 0
         
-        numFollowed:
+        num_followed:
           description: | 
             number of users that the
             user with the username follow
@@ -383,7 +392,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "500": { $ref: "#/components/responses/InternalServerError" }
   
-  /users/{username}/profile/posts/{postId}:
+  /users/{username}/profile/posts/{post_id}:
     parameters:
       - name: username
         description: The user's username
@@ -391,7 +400,7 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/Username"
-      - name: postId
+      - name: post_id
         description: The UUID of the post
         in: path
         required: true
@@ -438,7 +447,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "500": { $ref: "#/components/responses/InternalServerError" }
 
-  /users/{username}/profile/posts/{postId}/likes:
+  /users/{username}/profile/posts/{post_id}/likes:
     parameters:
       - name: username
         description: The user's username
@@ -446,7 +455,7 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/Username"
-      - name: postId
+      - name: post_id
         description: The UUID of the post
         in: path
         required: true
@@ -475,7 +484,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "500": { $ref: "#/components/responses/InternalServerError" }
   
-  /users/{username}/profile/posts/{postId}/likes/{likerId}:
+  /users/{username}/profile/posts/{post_id}/likes/{liker_id}:
     parameters:
       - name: username
         description: The user's username
@@ -483,13 +492,13 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/Username"
-      - name: postId
+      - name: post_id
         description: The UUID of the post
         in: path
         required: true
         schema:
           $ref: "#/components/schemas/UUID"
-      - name: likerId
+      - name: liker_id
         description: The UUID of the user
         in: path
         required: true
@@ -528,7 +537,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "500": { $ref: "#/components/responses/InternalServerError" }
   
-  /users/{username}/profile/posts/{postId}/comments:
+  /users/{username}/profile/posts/{post_id}/comments:
     parameters:
       - name: username
         description: The user's username
@@ -536,7 +545,7 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/Username"
-      - name: postId
+      - name: post_id
         description: The UUID of the post
         in: path
         required: true
@@ -558,12 +567,16 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                description: | 
-                  An array representing the comments in
-                    cronological order
-                items:
-                  $ref: "#/components/schemas/Comment"
+                type: object
+                description: An array of comments
+                properties:
+                  comments:
+                    type: array
+                    description: | 
+                      An array representing the comments in
+                        cronological order
+                    items:
+                      $ref: "#/components/schemas/Comment"
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -581,12 +594,14 @@ paths:
         content:
           application/json:
             schema:
+              type: object
               description: | 
                 Represent the content of the comment
-              type: string
-              minLength: 1
-              maxLength: 2200
-              
+              properties:
+                comment:
+                  type: string
+                  minLength: 1
+                  maxLength: 2200
       responses:
         "200":
           description: |
@@ -600,7 +615,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "500": { $ref: "#/components/responses/InternalServerError" }
                 
-  /users/{username}/profile/posts/{postId}/comments/{commentId}:
+  /users/{username}/profile/posts/{post_id}/comments/{comment_id}:
     parameters:
       - name: username
         description: The user's username
@@ -608,13 +623,13 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/Username"
-      - name: postId
+      - name: post_id
         description: The UUID of the post
         in: path
         required: true
         schema:
           $ref: "#/components/schemas/UUID"
-      - name: commentId
+      - name: comment_id
         description: The UUID of the comment
         in: path
         required: true
