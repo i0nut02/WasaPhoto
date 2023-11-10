@@ -25,19 +25,9 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      
-  responses:
-    Unauthorized:
-      description: The access token is missing or it's expired.
-    BadRequest:
-      description: The request was not compliant with the documentation (eg. missing fields, etc).
-    InternalServerError:
-      description: The server encountered an internal error. Further info in server logs
-    NotFound:
-      description: The requested resource could not be found.
   
   schemas:
-    UUID:
+    UniversallyUniqueIdentifiers:
       title: Universally Unique Identifier
       description: |
         A random based UUID used to identify UserID, PhotoID, and more.
@@ -54,11 +44,15 @@ components:
       type: object 
       properties:
         username_string:
+          description: string of the object
           type: string
           pattern: '^[a-zA-Z0-9_.]{3,20}$'
           example: "Ionut_02"
           minLength: 3
           maxLength: 20
+      example:
+        username_string: "Jok3r"
+      
 
     User:
       title: User
@@ -66,9 +60,13 @@ components:
       type: object
       properties: 
         identifier:
-          $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
         username:
           $ref: "#/components/schemas/Username"
+      example:
+        identifier: "550e8400-e29b-41d4-a716-446655440001"
+        username:
+          username_string: "Alice123"
     
     UserList:
       title: User list
@@ -76,17 +74,24 @@ components:
       type: object  
       properties:
         usernames:
+          description: list of users
           type: array
+          minItems: 0
+          maxItems: 2147483647 
           items:
             $ref: "#/components/schemas/Username"
-    
+      example:
+        usernames:
+          - username_string: "Siria96"
+          - username_string: "Cicciogamer89"
+
     Photo:
       title: Photo
       type: object
       description: An object that contain the identifier of the photo and the file
       properties:
         id:
-          $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
         file:
           description: A binary file that represent the image
           type: string
@@ -96,8 +101,30 @@ components:
     
     LikedPhoto:
       title: Like status
-      description: if True then you liked it
-      type: boolean
+      description: Photo status
+      type: object
+      properties:
+        photo:
+          $ref: "#/components/schemas/Photo"
+        liked:
+          description: if True then you liked it
+          type: boolean
+
+    PostPrototype:
+      title: Prototype post
+      type: object
+      description: | 
+        Contain al the information needed to initialize
+        a post
+      properties:
+        photo:
+          $ref: "#/components/schemas/Photo"
+        description:
+          description: text related to the post
+          type: string
+          pattern: (.|\n)*
+          minLength: 0
+          maxLength: 2200
         
     Post:
       title: Post
@@ -109,35 +136,60 @@ components:
           type: string
           format: date-time
           example: "2017-07-21T17:32:28Z"
-
         author:
           $ref: "#/components/schemas/Username"
-        
-        photo:
-          $ref: "#/components/schemas/Photo"
-        
         num_likes:
           description: number of likes of the photo
           type: integer
           minimum: 0
-        
         num_comments:
           description: number of comments of the photo
           type: integer
           minimum: 0
-        
         liked_photo:
           $ref: "#/components/schemas/LikedPhoto"
+      example:
+        upload_time: "2023-11-10T10:15:00Z"
+        author:
+          username_string: "Alice123"
+        num_likes: 20
+        num_comments: 5
+        liked_photo:
+          photo:
+            photo_id: "78901234-5678-90ab-cdef-1234567890ab"
+          liked: true
           
-    Posts:
+    PostCollection:
       title: Posts
       description: An array of posts
       type: object
       properties:
         posts:
+          description: posts 
           type: array
+          minItems: 0
+          maxItems: 200
           items:
             $ref: "#/components/schemas/Post"
+      example:
+        posts:
+          - upload_time: "2023-11-10T10:15:00Z"
+            author:
+              username_string: "Alice123"
+            num_likes: 20
+            num_comments: 5
+            liked_photo:
+              photo_id: "78901234-5678-90ab-cdef-1234567890ab"
+              liked: true
+          - upload_time: "2023-11-09T15:30:45Z"
+            author:
+              username_string: "Bob456"
+            num_likes: 15
+            num_comments: 3
+            liked_photo:
+              photo_id: "56789012-3456-7890-cdef-9876543210de"
+              file: "000010101010101"
+              liked: false
     
     Profile:
       title: Profile
@@ -148,31 +200,46 @@ components:
       properties:
         username:
           $ref: "#/components/schemas/Username"
-        
         num_photos:
           description: number of photos of the user
           type: integer
           minimum: 0
-        
         num_followers:
           description: | 
             number of users that follow
             the user with the username
           type: integer
           minimum: 0
-        
         num_followed:
           description: | 
             number of users that the
             user with the username follow
           type: integer
           minimum: 0
-        
         following:
           description: |
             true if the user that request the
             profile is following him
           type: boolean
+      example:
+        username:
+          username_string: "Alice123"
+        num_photos: 30
+        num_followers: 100
+        num_followed: 50
+        following: true
+
+    CommentContent:
+      type: object
+      description: | 
+        Represent the content of the comment
+      properties:
+        comment:
+          description: the string of the comment
+          type: string
+          pattern: (.|\n)*
+          minLength: 1
+          maxLength: 2200
     
     Comment:
       title: Comment
@@ -180,6 +247,85 @@ components:
       description: | 
         Represent a post's comment including author,
           body and date-time of creation
+      properties:
+        id: 
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
+
+        author: 
+          $ref: "#/components/schemas/Username"
+
+        content: 
+          $ref: "#/components/schemas/CommentContent"
+
+        upload_time:
+          type: string
+          format: date-time
+          minLength: 20
+          maxLength: 20
+          description: Date and time when the comment was created
+          example: 2020-12-31T23:59:59Z
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174001"
+        author:
+          username_string: "Fratino"
+        content:
+          text: "1vs1"
+        upload_time: "2023-11-10T12:30:45Z"
+    
+    CommentList:
+      type: object
+      description: An array of comments
+      properties:
+        comments:
+          type: array
+          description: | 
+            An array representing the comments in
+            cronological order
+          minItems: 0
+          maxItems: 2147483647
+          items:
+            $ref: "#/components/schemas/Comment"
+      example:
+        comments:
+          - id: "123e4567-e89b-12d3-a456-426614174001"
+            author:
+              username_string: "Alice123"
+            content:
+              text: "This is a great post!"
+            upload_time: "2023-11-10T12:30:45Z"
+          - id: "456e7890-e12c-34d5-b678-901fe2345678"
+            author:
+              username_string: "Bob456"
+            content:
+              text: "Thanks for sharing!"
+            upload_time: "2023-11-10T13:45:00Z"
+    
+    Response:
+      title: Rersonse
+      description: A response message, it contains a code and a message
+      type: object
+      properties:
+        response:
+          description: The error message
+          type: string
+          pattern: (.|\n)*
+          minLength: 1
+          maxLength: 150
+          example: Bad request
+
+        code:
+          description: code error
+          type: integer
+          minimum: 200
+          maximum: 599
+          example: 400
+
+tags:
+  - name: login 
+  - name: users
+  - name: posts
+  - name: followers
+  - name: bans
         
 paths:
   /session:
@@ -211,9 +357,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/BadRequest"
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        
+                $ref: "#/components/schemas/Response"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+
   /users/{username}/stream:
     parameters:
       - name: username
@@ -256,11 +407,31 @@ paths:
           content: 
             application/json:
               schema:
-                $ref: "#/components/schemas/Posts"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+                $ref: "#/components/schemas/PostCollection"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
       
   /users/{username}/profile:
     parameters:
@@ -287,12 +458,40 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Profile"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-    
+                $ref: "#/components/schemas/Profile"        
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+
+  /users/{username}/set_username:
+    parameters:
+      - name: username
+        description: The username of the one to get the profile
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/Username"
     put:
       tags: ["users"]
       operationId: setMyUserName
@@ -315,6 +514,10 @@ paths:
       responses:
         "200": 
           description: Username set succesfully
+          content:
+            application/json:
+              schema:
+                 $ref: "#/components/schemas/Profile"
         "400":
           description: |
             The username must contain just alphanumeric
@@ -322,11 +525,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/responses/BadRequest"
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-    
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
           
   /users/{username}/profile/posts:
     parameters:
@@ -351,11 +568,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Posts"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+                $ref: "#/components/schemas/PostCollection"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
     post:
       tags: ["posts"]
       operationId: uploadPhoto
@@ -368,18 +605,8 @@ paths:
       requestBody:
         content: 
           application/json:
-            schema:
-              title: New post
-              type: object
-              description: | 
-                Contain al the information needed to initialize
-                  a post
-              properties:
-                photo:
-                  $ref: "#/components/schemas/Photo"
-                desctription:
-                  type: string
-                  maxLength: 2200
+            schema: 
+              $ref: "#/components/schemas/PostPrototype"
       responses:
         "201": 
           description: Succesfully uploaded a new post
@@ -387,10 +614,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Post"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
   
   /users/{username}/profile/posts/{post_id}:
     parameters:
@@ -405,7 +652,7 @@ paths:
         in: path
         required: true
         schema:
-          $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
     
     get:
       tags: ["posts"]
@@ -423,10 +670,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Post"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
     delete:
       tags: ["posts"]
       operationId: deletePhoto
@@ -439,13 +706,37 @@ paths:
       responses:
         "204":
           description: Succesfully deleted the user's post
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
         "403": 
           description: | 
-            Insufficient permissions to delete the resource.
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+            Insufficient permissions to delete the resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
 
   /users/{username}/profile/posts/{post_id}/likes:
     parameters:
@@ -460,7 +751,7 @@ paths:
         in: path
         required: true
         schema:
-          $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
     
     get:
       tags: ["posts"]
@@ -479,10 +770,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserList"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
   
   /users/{username}/profile/posts/{post_id}/likes/{liker_id}:
     parameters:
@@ -497,13 +808,13 @@ paths:
         in: path
         required: true
         schema:
-          $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
       - name: liker_id
         description: The UUID of the user
         in: path
         required: true
         schema:
-          $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
     
     put:
       tags: ["posts"]
@@ -514,12 +825,36 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "204":
+        "200":
           description: Succesfully saved the like status
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Username"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
         
     delete:
       tags: ["posts"]
@@ -532,10 +867,30 @@ paths:
       responses:
         "204":
           description: Succesfully deleted the like from the post
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
   
   /users/{username}/profile/posts/{post_id}/comments:
     parameters:
@@ -550,7 +905,7 @@ paths:
         in: path
         required: true
         schema:
-          $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
     
     get:
       tags: ["posts"]
@@ -566,21 +921,32 @@ paths:
             Succesfully get the post's comments
           content:
             application/json:
+              schema: 
+                $ref: "#/components/schemas/CommentList"
+        "400":
+          description: Bad request
+          content:
+            application/json:
               schema:
-                type: object
-                description: An array of comments
-                properties:
-                  comments:
-                    type: array
-                    description: | 
-                      An array representing the comments in
-                        cronological order
-                    items:
-                      $ref: "#/components/schemas/Comment"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
     
     post:
       tags: ["posts"]
@@ -594,26 +960,39 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              description: | 
-                Represent the content of the comment
-              properties:
-                comment:
-                  type: string
-                  minLength: 1
-                  maxLength: 2200
+              $ref: "#/components/schemas/CommentContent"
       responses:
-        "200":
+        "201":
           description: |
             Succesfully posted the comment
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Comment"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
                 
   /users/{username}/profile/posts/{post_id}/comments/{comment_id}:
     parameters:
@@ -628,13 +1007,13 @@ paths:
         in: path
         required: true
         schema:
-          $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
       - name: comment_id
         description: The UUID of the comment
         in: path
         required: true
         schema:
-          $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
     
     delete:
       tags: ["posts"]
@@ -649,10 +1028,30 @@ paths:
         "204":
           description: |
             Succesfully deleted the comment
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
   
   /users/{username}/followers:
     parameters:
@@ -678,10 +1077,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserList"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
   
   /users/{username}/following:
     parameters:
@@ -707,10 +1126,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserList"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
   
   /users/{username}/following/{followed_username}:
     parameters:
@@ -734,12 +1173,36 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "204":
+        "200":
           description: The user has been followed
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Username"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
     delete:
       tags: ["followers"]
       operationId: unfollowUser
@@ -750,10 +1213,30 @@ paths:
       responses:
         "204":
           description: The user has been unfollowed
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
 
   /users/{username}/bans:
     parameters:
@@ -779,10 +1262,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserList"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
   
   /users/{username}/bans/{banned_username}:
     parameters:
@@ -806,12 +1309,36 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "204":
+        "200":
           description: The user has been banned
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Username"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
     delete:
       tags: ["bans"]
       operationId: unbanUser
@@ -822,10 +1349,30 @@ paths:
       responses:
         "204":
           description: The user has been unbanned
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
   
   /users:
     parameters:
@@ -850,7 +1397,27 @@ paths:
             application/json:
               schema:  
                 $ref: "#/components/schemas/UserList"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
