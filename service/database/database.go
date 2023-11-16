@@ -41,6 +41,8 @@ type AppDatabase interface {
 	GetName() (string, error)
 	SetName(name string) error
 
+	DoLogin(username string) (string, error)
+
 	Ping() error
 }
 
@@ -59,8 +61,66 @@ func New(db *sql.DB) (AppDatabase, error) {
 	var tableName string
 	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='example_table';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
+		// i shoud also set PRAGMA to True (?)
+		usersDatabase := `CREATE TABLE IF NOT EXISTS users (
+							id TEXT NOT NULL PRIMARY KEY, 
+							username TEXT NOT NULL UNIQUE
+							);`
+		followersDatabase := `CREATE TABLE IF NOT EXISTS followers (
+								followed TEXT NOT NULL,
+								follower TEXT NOT NULL,
+								FOREIGN KEY (followed) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+								FOREIGN KEY (follower) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+								);`
+		bansDataBase := `CREATE TABLE IF NOT EXISTS bans (
+							banisher TEXT NOT NULL,
+							banished TEXT NOT NULL,
+							FOREIGN KEY (banisher) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+							FOREIGN KEY (banished) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+							);`
+		postsDatabase := `CREATE TABLE IF NOT EXISTS posts (
+							id TEXT NOT NULL PRIMARY KEY,
+							photo BLOB NOT NULL,
+							author_id TEXT NOT NULL,
+							upload_time TEXT NOT NULL,
+							description TEXT,
+							FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+							);`
+		likesDatabase := `CREATE TABLE IF NOT EXISTS likes (
+							post_id TEXT NOT NULL,
+							liker TEXT NOT NULL,
+							FOREIGN KEY (liker) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+							FOREIGN KEY (liker) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+							)`
+		commentsDatabase := `CREATE TABLE IF NOT EXISTS comments (
+								comment_id TEXT NOT NULL PRIMARY KEY,
+								post_id TEXT NOT NULL,
+								user_id TEXT NOT NULL,
+								content TEXT NOT NULL,
+								FOREIGN KEY (post_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+								FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+		)`
+		_, err = db.Exec(usersDatabase)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+		_, err = db.Exec(followersDatabase)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+		_, err = db.Exec(bansDataBase)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+		_, err = db.Exec(postsDatabase)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+		_, err = db.Exec(likesDatabase)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+		_, err = db.Exec(commentsDatabase)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
 		}
