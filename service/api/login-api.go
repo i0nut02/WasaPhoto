@@ -14,7 +14,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	var user components.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 
-	if err != nil {
+	if err != nil || user.Username == "" {
 		w.WriteHeader(http.StatusBadRequest)
 
 		ctx.Logger.WithError(err).Error(
@@ -26,8 +26,9 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 			ctx.Logger.WithError(err).Error(
 				fmt.Errorf("error writing the response: %w", err))
 		}
+		return
 	}
-	ret_data, err := rt.db.DoLogin(user.Username)
+	data, err := rt.db.DoLogin(user.Username)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -35,7 +36,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		ctx.Logger.WithError(err).Error(
 			fmt.Errorf("error creating/searching the username: %s, details: %w", user.Username, err).Error())
 
-		_, err = w.Write([]byte(ret_data))
+		_, err = w.Write([]byte(data))
 
 		if err != nil {
 			ctx.Logger.WithError(err).Error("error writing response")
@@ -44,7 +45,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 	w.WriteHeader(http.StatusCreated)
 
-	_, err = w.Write([]byte(ret_data))
+	_, err = w.Write([]byte(data))
 
 	if err != nil {
 		ctx.Logger.WithError(err).Error(

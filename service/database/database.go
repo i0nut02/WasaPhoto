@@ -43,6 +43,10 @@ type AppDatabase interface {
 
 	DoLogin(username string) (string, error)
 
+	IsValid(userId string, username string) (bool, error)
+
+	SearchUserBySubString(searcher string, serch_string string) (matches string, err error)
+
 	Ping() error
 }
 

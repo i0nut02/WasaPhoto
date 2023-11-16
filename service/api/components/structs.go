@@ -11,3 +11,11 @@ type User struct {
 func (u *User) ToJson() ([]byte, error) {
 	return json.MarshalIndent(u, "", " ")
 }
+
+type UserId struct {
+	UserId string `json:"user_id"`
+}
+
+func (u *UserId) ToJson() ([]byte, error) {
+	return json.MarshalIndent(u, "", " ")
+}

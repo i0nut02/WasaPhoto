@@ -1,4 +1,5 @@
 package components
 
-const BadRequestError string = "{\"code\" : 400, \"message\" : \"Bad Request\"}"
-const InternalServerError string = "{\"code\" : 500, \"message\" : \"Internal Server Error\"}"
+const BadRequestError string = "{\"code\" : 400, \"response\" : \"Bad Request\"}"
+const InternalServerError string = "{\"code\" : 500, \"response\" : \"Internal Server Error\"}"
+const UnauthorizedError string = "{\"code\" : 401, \"response\" : \"Unauthorized\"}"

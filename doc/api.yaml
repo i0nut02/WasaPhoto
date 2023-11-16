@@ -52,21 +52,15 @@ components:
           maxLength: 20
       example:
         username_string: "Jok3r"
-      
-
-    User:
-      title: User
-      description: User schema
+    
+    UserId:
+      title: User Identifier
+      description: |
+        Represent the Identifier of the user
       type: object
-      properties: 
-        identifier:
+      properties:
+        user_id:
           $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
-        username:
-          $ref: "#/components/schemas/Username"
-      example:
-        identifier: "550e8400-e29b-41d4-a716-446655440001"
-        username:
-          username_string: "Alice123"
     
     UserList:
       title: User list
@@ -351,7 +345,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/UserId"
         '400':
           description: Invalid username format
           content:
