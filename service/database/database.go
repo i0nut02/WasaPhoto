@@ -47,6 +47,10 @@ type AppDatabase interface {
 
 	SearchUserBySubString(searcher string, serch_string string) (matches string, err error)
 
+	SetUsername(id string, old_username string, new_username string) (data string, err error)
+
+	GetUsernameFromId(id string) (username string, err error)
+
 	Ping() error
 }
 

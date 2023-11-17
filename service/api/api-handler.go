@@ -17,7 +17,8 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/session", rt.wrap(rt.doLogin))
 
 	// Users routes
-	rt.router.GET("/users", rt.wrap(rt.Search))
+	rt.router.GET("/users", rt.wrap(rt.search))
+	rt.router.PUT("/users/:username/set_username", rt.wrap(rt.setUsername))
 
 	return rt.router
 }
