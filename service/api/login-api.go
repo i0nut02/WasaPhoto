@@ -17,8 +17,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	if err != nil || user.Username == "" {
 		w.WriteHeader(http.StatusBadRequest)
 
-		ctx.Logger.WithError(err).Error(
-			fmt.Errorf("error parsing request body: %w", err).Error())
+		ctx.Logger.WithError(err).Error(fmt.Errorf("error parsing request body: %w", err).Error())
 
 		_, err = w.Write([]byte(components.BadRequestError))
 
@@ -28,6 +27,33 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		}
 		return
 	}
+
+	isValidUsername, err := user.IsValidUsername()
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+
+		ctx.Logger.WithError(err).Errorf("error checking if the username is valid")
+
+		_, err = w.Write([]byte(components.BadRequestError))
+
+		if err != nil {
+			ctx.Logger.WithError(err).Errorf("error writing the response")
+		}
+		return
+	}
+
+	if !isValidUsername {
+		w.WriteHeader(http.StatusBadRequest)
+
+		_, err = w.Write([]byte(components.InternalServerError))
+
+		if err != nil {
+			ctx.Logger.WithError(err).Error("error writing the response")
+		}
+		return
+	}
+
 	data, err := rt.db.DoLogin(user.Username)
 
 	if err != nil {

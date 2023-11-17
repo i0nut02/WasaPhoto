@@ -2,6 +2,7 @@ package components
 
 import (
 	"encoding/json"
+	"regexp"
 )
 
 type User struct {
@@ -10,6 +11,17 @@ type User struct {
 
 func (u *User) ToJson() ([]byte, error) {
 	return json.MarshalIndent(u, "", " ")
+}
+
+func (u *User) IsValidUsername() (match bool, err error) {
+	pattern := "^[a-zA-Z0-9_.]{3,20}$"
+
+	regex, err := regexp.Compile(pattern)
+
+	if err != nil {
+		return false, err
+	}
+	return regex.MatchString(u.Username), nil
 }
 
 type UserId struct {

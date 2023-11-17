@@ -25,7 +25,6 @@ func HandleUserValidationError(err error, w http.ResponseWriter, ctx reqcontext.
 	if err != nil {
 		ctx.Logger.WithError(err).Error("error writing response")
 	}
-	return
 }
 
 func (rt *_router) search(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -99,6 +98,31 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, ps httpro
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		ctx.Logger.WithError(err).Error("error decoding the body of the request")
+
+		_, err = w.Write([]byte(components.InternalServerError))
+
+		if err != nil {
+			ctx.Logger.WithError(err).Error("error writing the response")
+		}
+		return
+	}
+
+	validNewUsername, err := user.IsValidUsername()
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		ctx.Logger.WithError(err).Error("error tring to check if the new username is a valid one")
+
+		_, err = w.Write([]byte(components.InternalServerError))
+
+		if err != nil {
+			ctx.Logger.WithError(err).Error("error writing the response")
+		}
+		return
+	}
+
+	if !validNewUsername {
+		w.WriteHeader(http.StatusBadRequest)
 
 		_, err = w.Write([]byte(components.InternalServerError))
 
@@ -219,5 +243,4 @@ func (rt *_router) getProfile(w http.ResponseWriter, r *http.Request, ps httprou
 	if err != nil {
 		ctx.Logger.WithError(err).Errorf("error writing response")
 	}
-	return
 }
