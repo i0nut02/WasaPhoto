@@ -34,6 +34,15 @@ func (db *appdbimpl) IsValid(userId string, username string) (is_valid bool, err
 	return is_valid, nil
 }
 
+func (db *appdbimpl) ValidUsername(username string) (is_valid bool, err error) {
+	err = db.c.QueryRow(`SELECT EXISTS (SELECT 1 FROM users WHERE username = ?)`, username).Scan(&is_valid)
+
+	if err != nil {
+		return false, err
+	}
+	return is_valid, nil
+}
+
 func (db *appdbimpl) SearchUserBySubString(searcher string, searched_string string) (maches string, err error) {
 	res, err := db.c.Query(`SELECT username FROM users WHERE username LIKE '%'||?||'%' EXCEPT SELECT banisher FROM bans WHERE banished = ? EXCEPT SELECT ?;`, searched_string, searcher, searcher)
 
@@ -99,4 +108,76 @@ func (db *appdbimpl) SetUsername(id string, old_username string, new_username st
 	}
 
 	return string(res), nil
+}
+
+func (db *appdbimpl) IsBanned(banisher string, banished string) (answer bool, err error) {
+	var banisherId string
+	var banishedId string
+
+	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, banisher).Scan(&banisherId)
+	if err != nil {
+		return false, err
+	}
+
+	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, banished).Scan(&banishedId)
+	if err != nil {
+		return false, err
+	}
+
+	err = db.c.QueryRow(`SELECT EXISTS (SELECT 1 FROM bans WHERE banisher = ? and banished = ?)`, banisher, banished).Scan(&answer)
+
+	if err != nil {
+		return false, err
+	}
+	return answer, nil
+}
+
+func (db *appdbimpl) TakeProfile(username string, usernameProfile string) (profile string, err error) {
+	var userProfile components.UserProfile
+	var usernameId string
+	var usernameProfileId string
+
+	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, username).Scan(&usernameId)
+
+	if err != nil {
+		return components.InternalServerError, err
+	}
+
+	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, usernameProfile).Scan(&usernameProfileId)
+
+	if err != nil {
+		return components.InternalServerError, err
+	}
+
+	err = db.c.QueryRow(`
+		SELECT 
+			X1.username,
+			X2.num_photos,
+			X3.num_followers,
+			X4.num_followed,
+			(SELECT EXISTS (SELECT 1 FROM followers WHERE followed = ? AND follower = ?)) AS is_following
+		FROM 
+			(SELECT username FROM users WHERE id = ?) X1,
+			(SELECT COUNT(*) as num_photos FROM posts WHERE author_id = ?) X2,
+			(SELECT COUNT(*) as num_followers FROM followers WHERE followed = ?) X3,
+			(SELECT COUNT(*) as num_followed FROM followers WHERE follower = ?) X4
+			`, usernameProfileId, usernameId, usernameProfileId, usernameProfileId, usernameProfileId, usernameProfileId).Scan(
+		&userProfile.Username,
+		&userProfile.NumPhotos,
+		&userProfile.NumFollowers,
+		&userProfile.NumFollowed,
+		&userProfile.Following,
+	)
+
+	if err != nil {
+		return components.InternalServerError, err
+	}
+
+	jsonData, err := userProfile.ToJson()
+
+	if err != nil {
+		return components.InternalServerError, err
+	}
+
+	return string(jsonData), nil
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"encoding/json"
@@ -10,25 +11,30 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+func HandleUserValidationError(err error, w http.ResponseWriter, ctx reqcontext.RequestContext) {
+	ctx.Logger.WithError(err).Error("error validating user identity")
+
+	if err.Error() == components.BadRequestError {
+		w.WriteHeader(http.StatusBadRequest)
+		_, err = w.Write([]byte(components.BadRequestError))
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte(components.InternalServerError))
+	}
+
+	if err != nil {
+		ctx.Logger.WithError(err).Error("error writing response")
+	}
+	return
+}
+
 func (rt *_router) search(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	userId := r.Header.Get("Authorization")
 	username, err := rt.db.GetUsernameFromId(userId)
 
 	if err != nil {
-		ctx.Logger.WithError(err).Error("error validating user identity")
-
-		if err.Error() == components.BadRequestError {
-			w.WriteHeader(http.StatusBadRequest)
-			_, err = w.Write([]byte(components.BadRequestError))
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, err = w.Write([]byte(components.InternalServerError))
-		}
-
-		if err != nil {
-			ctx.Logger.WithError(err).Error("error writing response")
-		}
+		HandleUserValidationError(err, w, ctx)
 		return
 	}
 
@@ -126,4 +132,92 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, ps httpro
 	if err != nil {
 		ctx.Logger.WithError(err).Errorf("error writing the response")
 	}
+}
+
+func (rt *_router) getProfile(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+	id := r.Header.Get("Authorization")
+
+	username, err := rt.db.GetUsernameFromId(id)
+
+	if err != nil {
+		HandleUserValidationError(err, w, ctx)
+		return
+	}
+
+	var user components.User
+
+	user.Username = ps.ByName("username")
+
+	validUsername, err := rt.db.ValidUsername(user.Username)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		ctx.Logger.WithError(err).Error("error vedifing existece of username")
+
+		_, err = w.Write([]byte(components.InternalServerError))
+
+		if err != nil {
+			ctx.Logger.WithError(err).Errorf("error writing response")
+		}
+		return
+	}
+
+	if !validUsername {
+		w.WriteHeader(http.StatusBadRequest)
+
+		_, err = w.Write([]byte(components.BadRequestError))
+
+		if err != nil {
+			ctx.Logger.WithError(err).Errorf("error writing response")
+		}
+		return
+	}
+
+	banned, err := rt.db.IsBanned(user.Username, username)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		ctx.Logger.WithError(err).Error("error checkin if session owner is banned")
+
+		_, err = w.Write([]byte(components.InternalServerError))
+
+		if err != nil {
+			ctx.Logger.WithError(err).Error("error writing the response")
+		}
+		return
+	}
+
+	if banned {
+		w.WriteHeader(http.StatusForbidden)
+
+		_, err = w.Write([]byte(components.ForbiddenError))
+
+		if err != nil {
+			ctx.Logger.WithError(err).Errorf("error writing the response")
+		}
+		return
+	}
+
+	data, err := rt.db.TakeProfile(username, user.Username)
+	fmt.Println("exit db")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		ctx.Logger.WithError(err).Errorf("error retriving profile information")
+
+		_, err = w.Write([]byte(data))
+
+		if err != nil {
+			ctx.Logger.WithError(err).Errorf("error writing response")
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	_, err = w.Write([]byte(data))
+
+	if err != nil {
+		ctx.Logger.WithError(err).Errorf("error writing response")
+	}
+	return
 }

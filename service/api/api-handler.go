@@ -19,6 +19,7 @@ func (rt *_router) Handler() http.Handler {
 	// Users routes
 	rt.router.GET("/users", rt.wrap(rt.search))
 	rt.router.PUT("/users/:username/set_username", rt.wrap(rt.setUsername))
+	rt.router.GET("/users/:username/profile", rt.wrap(rt.getProfile))
 
 	return rt.router
 }
