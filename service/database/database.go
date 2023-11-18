@@ -38,9 +38,6 @@ import (
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
-	GetName() (string, error)
-	SetName(name string) error
-
 	DoLogin(username string) (string, error)
 
 	IsValid(userId string, username string) (bool, error)
@@ -52,11 +49,18 @@ type AppDatabase interface {
 
 	GetUsernameFromId(id string) (username string, err error)
 
-	IsBanned(banisher string, banished string) (answer bool, err error)
+	GetIdFromUsername(username string) (id string, err error)
+
+	IsBanished(banisher string, banished string) (answer bool, err error)
 
 	TakeProfile(username string, usernameProfile string) (profile string, err error)
 
 	GetStream(id string, offset int, limit int) (data string, err error)
+
+	GetBanned(id string) (data string, err error)
+
+	BanUser(idBanisher string, idBanished string) (data string, err error)
+	UnbanUser(idBanisher string, idBanished string) (data string, err error)
 
 	Ping() error
 }

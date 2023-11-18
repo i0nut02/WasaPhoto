@@ -114,7 +114,7 @@ func (rt *_router) getProfile(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	banned, err := rt.db.IsBanned(user.Username, username)
+	banned, err := rt.db.IsBanished(user.Username, username)
 
 	if err != nil {
 		HandleResponse(w, ctx, err, "error checkin if session owner is banned", components.InternalServerError, http.StatusInternalServerError)

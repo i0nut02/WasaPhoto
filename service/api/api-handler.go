@@ -22,5 +22,10 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.GET("/users/:username/profile", rt.wrap(rt.getProfile))
 	rt.router.GET("/users/:username/stream", rt.wrap(rt.getStream))
 
+	// Bans routes
+	rt.router.GET("/users/:username/bans/", rt.wrap(rt.getBanned))
+	rt.router.PUT("/users/:username/bans/:banned_username", rt.wrap(rt.banUser))
+	rt.router.DELETE("/users/:username/bans/:banned_username", rt.wrap(rt.unbanUser))
+
 	return rt.router
 }

@@ -21,6 +21,17 @@ func (db *appdbimpl) GetUsernameFromId(id string) (username string, err error) {
 	return username, nil
 }
 
+func (db *appdbimpl) GetIdFromUsername(username string) (id string, err error) {
+	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, username).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf(components.BadRequestError)
+		}
+		return "", err
+	}
+	return id, nil
+}
+
 func (db *appdbimpl) IsValid(userId string, username string) (is_valid bool, err error) {
 	var count int
 
@@ -110,7 +121,7 @@ func (db *appdbimpl) SetUsername(id string, old_username string, new_username st
 	return string(res), nil
 }
 
-func (db *appdbimpl) IsBanned(banisher string, banished string) (answer bool, err error) {
+func (db *appdbimpl) IsBanished(banisher string, banished string) (answer bool, err error) {
 	var banisherId string
 	var banishedId string
 
