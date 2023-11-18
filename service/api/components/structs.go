@@ -43,3 +43,18 @@ type UserProfile struct {
 func (u *UserProfile) ToJson() ([]byte, error) {
 	return json.MarshalIndent(u, "", " ")
 }
+
+type Post struct {
+	UploadTime  string `json:"upload_time"`
+	Author      string `json:"author"`
+	NumLikes    int    `json:"num_likes"`
+	NumComments int    `json:"num_comments"`
+	LikedPhoto  bool   `json:"liked_photo"`
+	PhotoID     string `json:"photo_id"`
+	PhotoFile   string `json:"photo_file"`
+	Description string `json:"description"`
+}
+
+func (p *Post) ToJson() ([]byte, error) {
+	return json.MarshalIndent(p, "", " ")
+}

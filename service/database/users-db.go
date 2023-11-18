@@ -181,3 +181,80 @@ func (db *appdbimpl) TakeProfile(username string, usernameProfile string) (profi
 
 	return string(jsonData), nil
 }
+
+func (db *appdbimpl) GetStream(id string, offset int, limit int) (data string, err error) {
+	rows, err := db.c.Query(`
+		SELECT 
+			P.upload_time AS upload_time, 
+			U1.username AS author, 
+			COUNT(L.liker) AS num_likes, 
+			COUNT(C.comment_id) AS num_comments, 
+			EXISTS (
+				SELECT 1 
+				FROM likes 
+				WHERE post_id = P.id AND liker = ?
+			) AS liked_photo, 
+			P.id AS photo_id, 
+			P.file AS photo_file, 
+			P.description AS description
+		FROM (
+			SELECT followed AS user 
+			FROM followers 
+			WHERE follower = ?
+			EXCEPT
+			SELECT banner 
+			FROM bans 
+			WHERE banned = ?
+		) U
+		INNER JOIN posts P ON P.author_id = U.user
+		INNER JOIN users U1 ON U1.id = U.user
+		INNER JOIN likes L ON L.post_id = P.id
+		INNER JOIN comments C ON C.post_id = P.id
+		GROUP BY P.id
+		ORDER BY P.upload_time DESC
+		OFFSET ?
+		LIMIT ?
+		`, id, id, id, offset, limit)
+
+	if err != nil {
+		return components.InternalServerError, err
+	}
+
+	defer rows.Close()
+
+	var posts []components.Post
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			return components.InternalServerError, err
+		}
+
+		var post components.Post
+		err = rows.Scan(
+			&post.UploadTime,
+			&post.Author,
+			&post.NumLikes,
+			&post.NumComments,
+			&post.LikedPhoto,
+			&post.PhotoID,
+			&post.PhotoFile,
+			&post.Description,
+		)
+
+		if err != nil {
+			return components.InternalServerError, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	res, err := json.Marshal(posts)
+
+	if err != nil {
+		return components.InternalServerError, err
+	}
+	if string(res) == "null" {
+		return "[]", nil
+	}
+	return string(res), nil
+}

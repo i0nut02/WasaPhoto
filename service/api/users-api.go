@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"encoding/json"
+	"strconv"
 
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/reqcontext"
@@ -129,6 +130,45 @@ func (rt *_router) getProfile(w http.ResponseWriter, r *http.Request, ps httprou
 
 	if err != nil {
 		HandleResponse(w, ctx, err, "error retriving profile information", data, http.StatusInternalServerError)
+		return
+	}
+
+	HandleResponse(w, ctx, nil, "", data, http.StatusOK)
+}
+
+func (rt _router) getStream(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+	id := r.Header.Get("Authorization")
+
+	username := ps.ByName("username")
+
+	isValid, err := rt.db.IsValid(id, username)
+
+	if err != nil {
+		HandleResponse(w, ctx, err, "error validating user identity", components.InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if !isValid {
+		HandleResponse(w, ctx, nil, "", components.UnauthorizedError, http.StatusUnauthorized)
+		return
+	}
+
+	toSkip, err := strconv.Atoi(r.URL.Query().Get("from"))
+	if err != nil {
+		HandleResponse(w, ctx, err, "error converting from value into integer", components.InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	maxQuantity, err := strconv.Atoi(r.URL.Query().Get("max_quantity"))
+	if err != nil {
+		HandleResponse(w, ctx, err, "error converting max_quantity value into integer", components.InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	data, err := rt.db.GetStream(id, toSkip, maxQuantity)
+
+	if err != nil {
+		HandleResponse(w, ctx, err, "error getting the stream", data, http.StatusInternalServerError)
 		return
 	}
 

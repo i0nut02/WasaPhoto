@@ -56,6 +56,8 @@ type AppDatabase interface {
 
 	TakeProfile(username string, usernameProfile string) (profile string, err error)
 
+	GetStream(id string, offset int, limit int) (data string, err error)
+
 	Ping() error
 }
 

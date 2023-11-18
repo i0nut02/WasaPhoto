@@ -92,17 +92,6 @@ components:
           format: binary
           minLength: 0
           maxLength: 30000000 # 30 MB
-    
-    LikedPhoto:
-      title: Like status
-      description: Photo status
-      type: object
-      properties:
-        photo:
-          $ref: "#/components/schemas/Photo"
-        liked:
-          description: if True then you liked it
-          type: boolean
 
     PostPrototype:
       title: Prototype post
@@ -110,9 +99,15 @@ components:
       description: | 
         Contain al the information needed to initialize
         a post
-      properties:
-        photo:
-          $ref: "#/components/schemas/Photo"
+      properties:        
+        id:
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
+        file:
+          description: A binary file that represent the image
+          type: string
+          format: binary
+          minLength: 0
+          maxLength: 30000000 # 30 MB
         description:
           description: text related to the post
           type: string
@@ -131,7 +126,12 @@ components:
           format: date-time
           example: "2017-07-21T17:32:28Z"
         author:
-          $ref: "#/components/schemas/Username"
+          description: string of the object
+          type: string
+          pattern: '^[a-zA-Z0-9_.]{3,20}$'
+          example: "Ionut_02"
+          minLength: 3
+          maxLength: 20
         num_likes:
           description: number of likes of the photo
           type: integer
@@ -141,17 +141,33 @@ components:
           type: integer
           minimum: 0
         liked_photo:
-          $ref: "#/components/schemas/LikedPhoto"
+          description: if True then you liked it
+          type: boolean
+        photo_id:
+          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
+        photo_file:
+          description: A binary file that represent the image
+          type: string
+          format: binary
+          minLength: 0
+          maxLength: 30000000 # 30 MB
+        description: 
+          description: text related to the post
+          type: string
+          pattern: (.|\n)*
+          minLength: 0
+          maxLength: 2200
+
       example:
         upload_time: "2023-11-10T10:15:00Z"
-        author:
-          username_string: "Alice123"
+        author: "Alice123"
         num_likes: 20
         num_comments: 5
-        liked_photo:
-          photo:
-            photo_id: "78901234-5678-90ab-cdef-1234567890ab"
-          liked: true
+        liked_photo: True
+        photo_id: "550e8400-e29b-41d4-a716-446655440001"
+        photo_file: "000010101010101"
+        description: "it's raining"
+
           
     PostCollection:
       title: Posts
@@ -168,23 +184,22 @@ components:
       example:
         posts:
           - upload_time: "2023-11-10T10:15:00Z"
-            author:
-              username_string: "Alice123"
+            author: "Alice123"
             num_likes: 20
             num_comments: 5
-            liked_photo:
-              photo_id: "78901234-5678-90ab-cdef-1234567890ab"
-              liked: true
-          - upload_time: "2023-11-09T15:30:45Z"
-            author:
-              username_string: "Bob456"
-            num_likes: 15
-            num_comments: 3
-            liked_photo:
-              photo_id: "56789012-3456-7890-cdef-9876543210de"
-              file: "000010101010101"
-              liked: false
-    
+            liked_photo: True
+            photo_id: "550e8400-e29b-41d4-a716-446655440001"
+            photo_file: "000010101010101"
+            description: "it's raining"
+          - upload_time: "2023-10-10T10:15:00Z"
+            author: "Alice123"
+            num_likes: 20
+            num_comments: 5
+            liked_photo: True
+            photo_id: "550e8400-e29b-41d4-a716-446655440001"
+            photo_file: "000010101010101"
+            description: "it's raining"
+        
     Profile:
       title: Profile
       type: object
