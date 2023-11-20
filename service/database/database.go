@@ -34,6 +34,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
 )
 
 // AppDatabase is the high level interface for the DB
@@ -61,6 +63,14 @@ type AppDatabase interface {
 
 	BanUser(idBanisher string, idBanished string) (data string, err error)
 	UnbanUser(idBanisher string, idBanished string) (data string, err error)
+
+	UploadPhoto(photo *components.Photo, id string) (data string, err error)
+
+	GetUserPosts(id string, requesterId string) (data string, err error)
+
+	DeletePhoto(post_id string) (data string, err error)
+
+	GetPost(post_id string, id string) (data string, err error)
 
 	Ping() error
 }

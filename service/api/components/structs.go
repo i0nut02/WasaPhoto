@@ -58,3 +58,12 @@ type Post struct {
 func (p *Post) ToJson() ([]byte, error) {
 	return json.MarshalIndent(p, "", " ")
 }
+
+type Photo struct {
+	File        string `json:"file"`
+	Description string `json:"description"`
+}
+
+func (p *Photo) ToJson() ([]byte, error) {
+	return json.MarshalIndent(p, "", " ")
+}

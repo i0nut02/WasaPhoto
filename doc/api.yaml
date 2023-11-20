@@ -99,21 +99,21 @@ components:
       description: | 
         Contain al the information needed to initialize
         a post
-      properties:        
-        id:
-          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
+      properties:
         file:
           description: A binary file that represent the image
           type: string
           format: binary
           minLength: 0
           maxLength: 30000000 # 30 MB
+          example: 0101010110
         description:
           description: text related to the post
           type: string
           pattern: (.|\n)*
           minLength: 0
           maxLength: 2200
+          example: it's raining
         
     Post:
       title: Post
@@ -446,7 +446,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Response"
       
-  /users/{username}/profile:
+  /users/{username}/profile/:
     parameters:
       - name: username
         description: The username of the one to get the profile
@@ -558,7 +558,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Response"
           
-  /users/{username}/profile/posts:
+  /users/{username}/profile/posts/:
     parameters:
       - name: username
         description: The username of the one to get the posts
@@ -1251,7 +1251,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Response"
 
-  /users/{username}/bans:
+  /users/{username}/bans/:
     parameters:
       - name: username
         in: path
@@ -1387,7 +1387,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Response"
   
-  /users:
+  /users/:
     parameters:
       - name: search_term
         in: query

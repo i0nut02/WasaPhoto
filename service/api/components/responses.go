@@ -5,3 +5,4 @@ const InternalServerError string = "{\"code\" : 500, \"response\" : \"Internal S
 const UnauthorizedError string = "{\"code\" : 401, \"response\" : \"Unauthorized\"}"
 const ConflictError string = "{\"code\": 409, \"message\": \"Conflict\"}"
 const ForbiddenError string = "{\"code\": 403, \"message\": \"Forbidden\"}"
+const NoContent string = "{\"code\": 204, \"message\": \"No Content\"}"
