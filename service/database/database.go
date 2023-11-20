@@ -77,9 +77,9 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	// Check if table exists. If not, the database is empty, and we need to create the structure
-	var tableName string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='example_table';`).Scan(&tableName)
-	if errors.Is(err, sql.ErrNoRows) {
+	var tableCounter int
+	err := db.QueryRow(`SELECT count() FROM sqlite_master WHERE type='table';`).Scan(&tableCounter)
+	if errors.Is(err, sql.ErrNoRows) || tableCounter != 6 {
 		// i shoud also set PRAGMA to True (?)
 		usersDatabase := `CREATE TABLE IF NOT EXISTS users (
 							id TEXT NOT NULL PRIMARY KEY, 
@@ -88,12 +88,14 @@ func New(db *sql.DB) (AppDatabase, error) {
 		followersDatabase := `CREATE TABLE IF NOT EXISTS followers (
 								followed TEXT NOT NULL,
 								follower TEXT NOT NULL,
+								PRIMARY KEY (followed, follower),
 								FOREIGN KEY (followed) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
 								FOREIGN KEY (follower) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 								);`
 		bansDataBase := `CREATE TABLE IF NOT EXISTS bans (
 							banisher TEXT NOT NULL,
 							banished TEXT NOT NULL,
+							PRIMARY KEY (banisher, banished),
 							FOREIGN KEY (banisher) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
 							FOREIGN KEY (banished) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 							);`

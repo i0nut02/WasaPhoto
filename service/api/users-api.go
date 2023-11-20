@@ -11,7 +11,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) search(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) searchUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	userId := r.Header.Get("Authorization")
 	username, err := rt.db.GetUsernameFromId(userId)
@@ -33,7 +33,7 @@ func (rt *_router) search(w http.ResponseWriter, r *http.Request, ps httprouter.
 	HandleResponse(w, ctx, nil, "", data, http.StatusOK)
 }
 
-func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	id := r.Header.Get("Authorization")
 
 	username := ps.ByName("username")
@@ -88,7 +88,7 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, ps httpro
 	HandleResponse(w, ctx, nil, "", data, http.StatusOK)
 }
 
-func (rt *_router) getProfile(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	id := r.Header.Get("Authorization")
 
 	username, err := rt.db.GetUsernameFromId(id)
@@ -136,7 +136,7 @@ func (rt *_router) getProfile(w http.ResponseWriter, r *http.Request, ps httprou
 	HandleResponse(w, ctx, nil, "", data, http.StatusOK)
 }
 
-func (rt _router) getStream(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt _router) getMyStream(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	id := r.Header.Get("Authorization")
 
 	username := ps.ByName("username")
