@@ -1115,7 +1115,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Response"
   
-  /users/{username}/following:
+  /users/{username}/following/:
     parameters:
       - name: username
         in: path

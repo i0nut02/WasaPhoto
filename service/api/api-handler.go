@@ -39,7 +39,11 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/users/:username/profile/posts/:post_id/comments/", rt.wrap(rt.commentPhoto))
 	rt.router.DELETE("/users/:username/profile/posts/:post_id/comments/:comment_id", rt.wrap(rt.uncommentPhoto))
 
-	// Follo
+	// Followers routes
+	rt.router.GET("/users/:username/followers", rt.wrap(rt.getFollowers))
+	rt.router.GET("/users/:username/following/", rt.wrap(rt.getFollowing))
+	rt.router.PUT("/users/:username/following/:followed_username", rt.wrap(rt.followUser))
+	rt.router.DELETE("/users/:username/following/:followed_username", rt.wrap(rt.unfollowUser))
 
 	return rt.router
 }

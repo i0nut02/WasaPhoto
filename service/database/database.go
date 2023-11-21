@@ -86,6 +86,14 @@ type AppDatabase interface {
 
 	UncommentPhoto(commentId string) (data string, err error)
 
+	GetFollowers(username string, requestedId string) (data string, err error)
+
+	GetFollowing(username string, requestedId string) (data string, err error)
+
+	FollowUser(followerId string, followedId string) (data string, err error)
+
+	UnfollowUser(followerId string, followedId string) (data string, err error)
+
 	Ping() error
 }
 
