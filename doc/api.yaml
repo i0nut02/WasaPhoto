@@ -652,7 +652,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Response"
   
-  /users/{username}/profile/posts/{post_id}:
+  /users/{username}/profile/posts/{post_id}/:
     parameters:
       - name: username
         description: The user's username
@@ -751,7 +751,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Response"
 
-  /users/{username}/profile/posts/{post_id}/likes:
+  /users/{username}/profile/posts/{post_id}/likes/:
     parameters:
       - name: username
         description: The user's username
@@ -905,7 +905,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Response"
   
-  /users/{username}/profile/posts/{post_id}/comments:
+  /users/{username}/profile/posts/{post_id}/comments/:
     parameters:
       - name: username
         description: The user's username

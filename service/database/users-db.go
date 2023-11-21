@@ -127,11 +127,13 @@ func (db *appdbimpl) IsBanished(banisher string, banished string) (answer bool, 
 
 	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, banisher).Scan(&banisherId)
 	if err != nil {
+		fmt.Println("banisher", banisher)
 		return false, err
 	}
 
 	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, banished).Scan(&banishedId)
 	if err != nil {
+		fmt.Println("banished", banished)
 		return false, err
 	}
 

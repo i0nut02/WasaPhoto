@@ -67,3 +67,13 @@ type Photo struct {
 func (p *Photo) ToJson() ([]byte, error) {
 	return json.MarshalIndent(p, "", " ")
 }
+
+type Comment struct {
+	Id      string `json:"id"`
+	Author  string `json:"author"`
+	Content string `json:"content"`
+}
+
+func (c *Comment) ToJson() ([]byte, error) {
+	return json.MarshalIndent(c, "", " ")
+}

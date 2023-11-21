@@ -72,6 +72,20 @@ type AppDatabase interface {
 
 	GetPost(post_id string, id string) (data string, err error)
 
+	ValidPostAuthor(postId string, author string) (isValid bool, err error)
+
+	GetLikes(postId string, userId string) (data string, err error)
+
+	LikePhoto(postId string, likerId string) (data string, err error)
+
+	UnlikePhoto(postId string, likerId string) (data string, err error)
+
+	GetComments(postId string, userId string) (data string, err error)
+
+	CommentPhoto(postId string, userId string, comment string) (data string, err error)
+
+	UncommentPhoto(commentId string) (data string, err error)
+
 	Ping() error
 }
 
