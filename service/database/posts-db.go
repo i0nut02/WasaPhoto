@@ -6,6 +6,7 @@ import (
 
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
 	"github.com/google/uuid"
+	"github.com/mattn/go-sqlite3"
 )
 
 func (db *appdbimpl) ValidPostAuthor(postId string, author string) (isValid bool, err error) {
@@ -108,7 +109,7 @@ func (db *appdbimpl) GetUserPosts(id string, requesterId string) (data string, e
 }
 
 func (db *appdbimpl) DeletePhoto(post_id string) (data string, err error) {
-	_, err = db.c.Exec(`DELETE FROM posts WHERE post_id = ?`, post_id)
+	_, err = db.c.Exec(`DELETE FROM posts WHERE id = ?`, post_id)
 
 	if err != nil {
 		return components.InternalServerError, err
@@ -172,7 +173,7 @@ func (db *appdbimpl) GetLikes(postId string, userId string) (data string, err er
 							 SELECT U.username
 							 FROM users U
 							 INNER JOIN bans B
-							 ON U.id, B.banisher
+							 ON U.id = B.banisher
 							 WHERE B.banished = ?`, postId, userId)
 
 	if err != nil {
@@ -208,12 +209,14 @@ func (db *appdbimpl) LikePhoto(postId string, likerId string) (data string, err 
 	_, err = db.c.Exec(`INSERT INTO likes (post_id, liker) VALUES (?, ?)`, postId, likerId)
 
 	if err != nil {
-		return components.InternalServerError, err
+		if sqliteErr, ok := err.(sqlite3.Error); !ok || !(sqliteErr.Code == sqlite3.ErrConstraint) {
+			return components.InternalServerError, err
+		}
 	}
 
 	var user components.User
 
-	err = db.c.QueryRow(`SELECT username FROM users WHERE id = ?`, likerId).Scan(&user)
+	err = db.c.QueryRow(`SELECT username FROM users WHERE id = ?`, likerId).Scan(&user.Username)
 
 	if err != nil {
 		return components.InternalServerError, err
@@ -251,17 +254,21 @@ func (db *appdbimpl) UnlikePhoto(postId string, likerId string) (data string, er
 }
 
 func (db *appdbimpl) GetComments(postId string, userId string) (data string, err error) {
-	rows, err := db.c.Query(` SELECT
-								C.comment_id
-								U.username
-								C.content
+	rows, err := db.c.Query(` 
+							SELECT
+								C.comment_id,
+								U1.username,
+								C.content,
+								C.upload_time
 							FROM
 								comments C
 								INNER JOIN 
-								(SELECT username FROM users EXCEPT SELECT banisher FROM bans WHERE banished = ?) U
+								(SELECT id AS id FROM users EXCEPT SELECT banisher FROM bans WHERE banished = ?) U
 								ON U.id = C.user_id
+								INNER JOIN users U1 ON U1.id = U.id
 							WHERE
-								C.post_id = ?`, userId, postId)
+								C.post_id = ?
+							`, userId, postId)
 	if err != nil {
 		return components.InternalServerError, err
 	}
@@ -276,7 +283,8 @@ func (db *appdbimpl) GetComments(postId string, userId string) (data string, err
 
 		err = rows.Scan(&comment.Id,
 			&comment.Author,
-			&comment.Content)
+			&comment.Content,
+			&comment.UploadTime)
 
 		if err != nil {
 			return components.InternalServerError, err
@@ -300,6 +308,7 @@ func (db *appdbimpl) GetComments(postId string, userId string) (data string, err
 
 func (db *appdbimpl) CommentPhoto(postId string, userId string, comment string) (data string, err error) {
 	newUUID := uuid.New()
+	timestampFormatted := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 
 	var commentComp components.Comment
 
@@ -309,7 +318,7 @@ func (db *appdbimpl) CommentPhoto(postId string, userId string, comment string) 
 		return components.InternalServerError, err
 	}
 
-	_, err = db.c.Exec(`INSERT INTO comments (comment_id, post_id, user_id, content) VALUES (?, ?, ?, ?)`, newUUID, postId, userId, comment)
+	_, err = db.c.Exec(`INSERT INTO comments (comment_id, post_id, user_id, content, upload_time) VALUES (?, ?, ?, ?, ?)`, newUUID, postId, userId, comment, timestampFormatted)
 
 	if err != nil {
 		return components.InternalServerError, err

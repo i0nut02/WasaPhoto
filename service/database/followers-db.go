@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
+	"github.com/mattn/go-sqlite3"
 )
 
 func (db *appdbimpl) GetFollowers(username string, requestedId string) (data string, err error) {
@@ -96,6 +97,7 @@ func (db *appdbimpl) FollowUser(followerId string, followedId string) (data stri
 	var user components.User
 
 	err = db.c.QueryRow(`SELECT username FROM users WHERE id = ?`, followedId).Scan(&user.Username)
+
 	if err != nil {
 		return components.InternalServerError, err
 	}
@@ -103,7 +105,9 @@ func (db *appdbimpl) FollowUser(followerId string, followedId string) (data stri
 	_, err = db.c.Exec(`INSERT INTO followers (followed, follower) VALUES (?, ?)`, followedId, followerId)
 
 	if err != nil {
-		return components.InternalServerError, err
+		if sqliteErr, ok := err.(sqlite3.Error); !ok || !(sqliteErr.Code == sqlite3.ErrConstraint) {
+			return components.InternalServerError, err
+		}
 	}
 
 	jsonData, err := user.ToJson()

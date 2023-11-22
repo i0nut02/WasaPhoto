@@ -142,6 +142,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 		likesDatabase := `CREATE TABLE IF NOT EXISTS likes (
 							post_id TEXT NOT NULL,
 							liker TEXT NOT NULL,
+							PRIMARY KEY (post_id, liker)
 							FOREIGN KEY (liker) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
 							FOREIGN KEY (liker) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 							)`
@@ -150,6 +151,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 								post_id TEXT NOT NULL,
 								user_id TEXT NOT NULL,
 								content TEXT NOT NULL,
+								upload_time TEXT NOT NULL,
 								FOREIGN KEY (post_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
 								FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 		)`

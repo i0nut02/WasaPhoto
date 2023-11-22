@@ -127,17 +127,15 @@ func (db *appdbimpl) IsBanished(banisher string, banished string) (answer bool, 
 
 	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, banisher).Scan(&banisherId)
 	if err != nil {
-		fmt.Println("banisher", banisher)
 		return false, err
 	}
 
 	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, banished).Scan(&banishedId)
 	if err != nil {
-		fmt.Println("banished", banished)
 		return false, err
 	}
 
-	err = db.c.QueryRow(`SELECT EXISTS (SELECT 1 FROM bans WHERE banisher = ? and banished = ?)`, banisher, banished).Scan(&answer)
+	err = db.c.QueryRow(`SELECT EXISTS (SELECT 1 FROM bans WHERE banisher = ? and banished = ?)`, banisherId, banishedId).Scan(&answer)
 
 	if err != nil {
 		return false, err
@@ -208,26 +206,25 @@ func (db *appdbimpl) GetStream(id string, offset int, limit int) (data string, e
 				WHERE post_id = P.id AND liker = ?
 			) AS liked_photo, 
 			P.id AS photo_id, 
-			P.file AS photo_file, 
+			P.photo AS photo_file, 
 			P.description AS description
 		FROM (
-			SELECT followed AS user 
-			FROM followers 
+			SELECT followed AS user
+			FROM followers
 			WHERE follower = ?
 			EXCEPT
-			SELECT banner 
-			FROM bans 
-			WHERE banned = ?
+			SELECT banisher 
+			FROM bans
+			WHERE banished = ?
 		) U
 		INNER JOIN posts P ON P.author_id = U.user
 		INNER JOIN users U1 ON U1.id = U.user
-		INNER JOIN likes L ON L.post_id = P.id
-		INNER JOIN comments C ON C.post_id = P.id
+		LEFT JOIN likes L ON L.post_id = P.id
+		LEFT JOIN comments C ON C.post_id = P.id
 		GROUP BY P.id
 		ORDER BY P.upload_time DESC
-		OFFSET ?
-		LIMIT ?
-		`, id, id, id, offset, limit)
+		LIMIT ? OFFSET ?
+		`, id, id, id, limit, offset)
 
 	if err != nil {
 		return components.InternalServerError, err

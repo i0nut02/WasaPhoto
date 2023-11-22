@@ -304,7 +304,7 @@ func (rt *_router) unlikePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	data, err := rt.db.LikePhoto(postId, likerId)
+	data, err := rt.db.UnlikePhoto(postId, likerId)
 
 	if err != nil {
 		HandleResponse(w, ctx, err, "error inserting the new like", data, http.StatusInternalServerError)
@@ -362,7 +362,7 @@ func (rt *_router) commentPhoto(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	var comment string
+	var comment components.CommentContent
 
 	err = json.NewDecoder(r.Body).Decode(&comment)
 
@@ -371,7 +371,7 @@ func (rt *_router) commentPhoto(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	data, err := rt.db.CommentPhoto(postId, id, comment)
+	data, err := rt.db.CommentPhoto(postId, id, comment.Content)
 
 	if err != nil {
 		HandleResponse(w, ctx, err, "error creating comment", data, http.StatusInternalServerError)

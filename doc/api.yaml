@@ -39,17 +39,21 @@ components:
     
     Username:
       title: Username
+      description: string of the object
+      type: string
+      pattern: '^[a-zA-Z0-9_.]{3,20}$'
+      example: "Ionut_02"
+      minLength: 3
+      maxLength: 20
+
+    UsernameObj:
+      title: Username
       description: |
         Represent a possible name of a User.
       type: object 
       properties:
         username_string:
-          description: string of the object
-          type: string
-          pattern: '^[a-zA-Z0-9_.]{3,20}$'
-          example: "Ionut_02"
-          minLength: 3
-          maxLength: 20
+          $ref: "#/components/schemas/Username"
       example:
         username_string: "Jok3r"
     
@@ -73,7 +77,7 @@ components:
           minItems: 0
           maxItems: 2147483647 
           items:
-            $ref: "#/components/schemas/Username"
+            $ref: "#/components/schemas/UsernameObj"
       example:
         usernames:
           - username_string: "Siria96"
@@ -126,12 +130,7 @@ components:
           format: date-time
           example: "2017-07-21T17:32:28Z"
         author:
-          description: string of the object
-          type: string
-          pattern: '^[a-zA-Z0-9_.]{3,20}$'
-          example: "Ionut_02"
-          minLength: 3
-          maxLength: 20
+          $ref: "#/components/schemas/Username"
         num_likes:
           description: number of likes of the photo
           type: integer
@@ -355,7 +354,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Username"
+              $ref: "#/components/schemas/UsernameObj"
         required: true
         
       responses:
@@ -523,14 +522,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Username"
+              $ref: "#/components/schemas/UsernameObj"
       responses:
         "200": 
           description: Username set succesfully
           content:
             application/json:
               schema:
-                 $ref: "#/components/schemas/Username"
+                 $ref: "#/components/schemas/UsernameObj"
         "400":
           description: |
             The username must contain just alphanumeric
@@ -843,7 +842,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Username"
+                $ref: "#/components/schemas/UsernameObj"
         "400":
           description: Bad request
           content:
@@ -1191,7 +1190,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Username"
+                $ref: "#/components/schemas/UsernameObj"
         "400":
           description: Bad request
           content:
@@ -1327,7 +1326,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Username"
+                $ref: "#/components/schemas/UsernameObj"
         "400":
           description: Bad request
           content:

@@ -69,11 +69,16 @@ func (p *Photo) ToJson() ([]byte, error) {
 }
 
 type Comment struct {
-	Id      string `json:"id"`
-	Author  string `json:"author"`
-	Content string `json:"content"`
+	Id         string `json:"id"`
+	Author     string `json:"author"`
+	Content    string `json:"content"`
+	UploadTime string `json:"upload_time"`
 }
 
 func (c *Comment) ToJson() ([]byte, error) {
 	return json.MarshalIndent(c, "", " ")
+}
+
+type CommentContent struct {
+	Content string `json:"comment"`
 }

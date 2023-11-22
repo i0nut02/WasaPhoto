@@ -73,7 +73,7 @@ func (rt *_router) getFollowing(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	data, err := rt.db.GetFollowers(usernameUrl, id)
+	data, err := rt.db.GetFollowing(usernameUrl, id)
 
 	if err != nil {
 		HandleResponse(w, ctx, err, "error retriving follower list", data, http.StatusInternalServerError)
