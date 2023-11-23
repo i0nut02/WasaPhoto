@@ -83,19 +83,13 @@ components:
           - username_string: "Siria96"
           - username_string: "Cicciogamer89"
 
-    Photo:
-      title: Photo
-      type: object
-      description: An object that contain the identifier of the photo and the file
-      properties:
-        id:
-          $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
-        file:
-          description: A binary file that represent the image
-          type: string
-          format: binary
-          minLength: 0
-          maxLength: 30000000 # 30 MB
+    PhotoFile:
+      title: Represent photo file format
+      description: A binary file that represent the image
+      type: string
+      format: binary
+      minLength: 0
+      maxLength: 30000000 # 30 MB
 
     PostPrototype:
       title: Prototype post
@@ -105,12 +99,7 @@ components:
         a post
       properties:
         file:
-          description: A binary file that represent the image
-          type: string
-          format: binary
-          minLength: 0
-          maxLength: 30000000 # 30 MB
-          example: 0101010110
+          $ref: "#/components/schemas/PhotoFile"
         description:
           description: text related to the post
           type: string
@@ -145,11 +134,7 @@ components:
         photo_id:
           $ref: "#/components/schemas/UniversallyUniqueIdentifiers"
         photo_file:
-          description: A binary file that represent the image
-          type: string
-          format: binary
-          minLength: 0
-          maxLength: 30000000 # 30 MB
+          $ref: "#/components/schemas/PhotoFile"
         description: 
           description: text related to the post
           type: string
@@ -278,8 +263,7 @@ components:
           example: 2020-12-31T23:59:59Z
       example:
         id: "123e4567-e89b-12d3-a456-426614174001"
-        author:
-          username_string: "Fratino"
+        author: "Fratino"
         content:
           text: "1vs1"
         upload_time: "2023-11-10T12:30:45Z"
@@ -300,14 +284,12 @@ components:
       example:
         comments:
           - id: "123e4567-e89b-12d3-a456-426614174001"
-            author:
-              username_string: "Alice123"
+            author: "Alice123"
             content:
               text: "This is a great post!"
             upload_time: "2023-11-10T12:30:45Z"
           - id: "456e7890-e12c-34d5-b678-901fe2345678"
-            author:
-              username_string: "Bob456"
+            author: "Bob456"
             content:
               text: "Thanks for sharing!"
             upload_time: "2023-11-10T13:45:00Z"
