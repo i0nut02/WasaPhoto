@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
@@ -13,7 +14,7 @@ import (
 func (db *appdbimpl) GetUsernameFromId(id string) (username string, err error) {
 	err = db.c.QueryRow(`SELECT username FROM users WHERE id = ?`, id).Scan(&username)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return "", fmt.Errorf(components.BadRequestError)
 		}
 		return "", err
@@ -24,7 +25,7 @@ func (db *appdbimpl) GetUsernameFromId(id string) (username string, err error) {
 func (db *appdbimpl) GetIdFromUsername(username string) (id string, err error) {
 	err = db.c.QueryRow(`SELECT id FROM users WHERE username = ?`, username).Scan(&id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return "", fmt.Errorf(components.BadRequestError)
 		}
 		return "", err
@@ -93,7 +94,7 @@ func (db *appdbimpl) SearchUserBySubString(searcher string, searched_string stri
 	if err != nil {
 		return components.InternalServerError, err
 	}
-	if string(data) == "null" {
+	if string(data) == EmptyJsonArray {
 		return "[]", nil
 	}
 	return string(data), nil
@@ -101,21 +102,22 @@ func (db *appdbimpl) SearchUserBySubString(searcher string, searched_string stri
 
 func (db *appdbimpl) SetUsername(id string, old_username string, new_username string) (data string, err error) {
 	_, err = db.c.Exec(`UPDATE users SET username = ? WHERE id = ? and username = ?`, new_username, id, old_username)
+
 	if err != nil {
-		if sqlError, ok := err.(sqlite3.Error); ok {
-			if sqlError.Code == sqlite3.ErrConstraint {
-				return components.ConflictError, fmt.Errorf("already exist a user with the new username")
-			}
+		var sqliteErr *sqlite3.Error
+		if errors.As(err, &sqliteErr) && (sqliteErr.Code == sqlite3.ErrConstraint) {
+			return components.InternalServerError, err
 		}
-		return components.InternalServerError, fmt.Errorf("error checking if the new username is taken")
+		return components.InternalServerError, err
 	}
+
 	var user components.User
 	user.Username = new_username
 
 	res, err := user.ToJson()
 
 	if err != nil {
-		return components.InternalServerError, fmt.Errorf("error parsing the new username")
+		return components.InternalServerError, err
 	}
 
 	return string(res), nil
@@ -263,7 +265,7 @@ func (db *appdbimpl) GetStream(id string, offset int, limit int) (data string, e
 	if err != nil {
 		return components.InternalServerError, err
 	}
-	if string(res) == "null" {
+	if string(res) == EmptyJsonArray {
 		return "[]", nil
 	}
 	return string(res), nil

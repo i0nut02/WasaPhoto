@@ -2,6 +2,7 @@ package database
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
@@ -101,7 +102,7 @@ func (db *appdbimpl) GetUserPosts(id string, requesterId string) (data string, e
 		return components.InternalServerError, err
 	}
 
-	if string(res) == "null" {
+	if string(res) == EmptyJsonArray {
 		return "[]", nil
 	}
 
@@ -188,7 +189,11 @@ func (db *appdbimpl) GetLikes(postId string, userId string) (data string, err er
 		}
 		var user components.User
 
-		rows.Scan(&user.Username)
+		err = rows.Scan(&user.Username)
+
+		if err != nil {
+			return components.InternalServerError, err
+		}
 
 		userList = append(userList, user)
 	}
@@ -199,7 +204,7 @@ func (db *appdbimpl) GetLikes(postId string, userId string) (data string, err er
 		return components.InternalServerError, err
 	}
 
-	if string(jsonData) == "null" {
+	if string(jsonData) == EmptyJsonArray {
 		return "[]", nil
 	}
 	return string(jsonData), nil
@@ -209,7 +214,8 @@ func (db *appdbimpl) LikePhoto(postId string, likerId string) (data string, err 
 	_, err = db.c.Exec(`INSERT INTO likes (post_id, liker) VALUES (?, ?)`, postId, likerId)
 
 	if err != nil {
-		if sqliteErr, ok := err.(sqlite3.Error); !ok || !(sqliteErr.Code == sqlite3.ErrConstraint) {
+		var sqliteErr *sqlite3.Error
+		if !errors.As(err, &sqliteErr) || !(sqliteErr.Code == sqlite3.ErrConstraint) {
 			return components.InternalServerError, err
 		}
 	}
@@ -299,7 +305,7 @@ func (db *appdbimpl) GetComments(postId string, userId string) (data string, err
 		return components.InternalServerError, err
 	}
 
-	if string(res) == "null" {
+	if string(res) == EmptyJsonArray {
 		return "[]", nil
 	}
 

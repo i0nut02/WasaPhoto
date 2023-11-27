@@ -38,7 +38,7 @@ func (db *appdbimpl) GetBanned(id string) (data string, err error) {
 
 	data = string(jsonData)
 
-	if data == "null" {
+	if data == EmptyJsonArray {
 		return "[]", nil
 	}
 	return data, nil

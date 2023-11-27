@@ -38,6 +38,8 @@ import (
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
 )
 
+const EmptyJsonArray = "null"
+
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
 	DoLogin(username string) (string, error)
