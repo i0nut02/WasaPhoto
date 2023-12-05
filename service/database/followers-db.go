@@ -2,10 +2,8 @@ package database
 
 import (
 	"encoding/json"
-	"errors"
 
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
-	"github.com/mattn/go-sqlite3"
 )
 
 func (db *appdbimpl) GetFollowers(username string, requestedId string) (data string, err error) {
@@ -103,13 +101,10 @@ func (db *appdbimpl) FollowUser(followerId string, followedId string) (data stri
 		return components.InternalServerError, err
 	}
 
-	_, err = db.c.Exec(`INSERT INTO followers (followed, follower) VALUES (?, ?)`, followedId, followerId)
+	_, err = db.c.Exec(`INSERT OR IGNORE INTO followers (followed, follower) VALUES (?, ?)`, followedId, followerId)
 
 	if err != nil {
-		var sqliteErr *sqlite3.Error
-		if !errors.As(err, &sqliteErr) || !(sqliteErr.Code == sqlite3.ErrConstraint) {
-			return components.InternalServerError, err
-		}
+		return components.InternalServerError, err
 	}
 
 	jsonData, err := user.ToJson()

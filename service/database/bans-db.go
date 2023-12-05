@@ -48,7 +48,6 @@ func (db *appdbimpl) BanUser(idBanisher string, idBanished string) (data string,
 	_, err = db.c.Exec(`INSERT OR IGNORE INTO bans (banisher, banished) VALUES (?, ?)`, idBanisher, idBanished)
 
 	if err != nil {
-
 		return components.InternalServerError, err
 	}
 

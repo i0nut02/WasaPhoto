@@ -2,12 +2,10 @@ package database
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
 
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
 	"github.com/google/uuid"
-	"github.com/mattn/go-sqlite3"
 )
 
 func (db *appdbimpl) ValidPostAuthor(postId string, author string) (isValid bool, err error) {
@@ -211,13 +209,10 @@ func (db *appdbimpl) GetLikes(postId string, userId string) (data string, err er
 }
 
 func (db *appdbimpl) LikePhoto(postId string, likerId string) (data string, err error) {
-	_, err = db.c.Exec(`INSERT INTO likes (post_id, liker) VALUES (?, ?)`, postId, likerId)
+	_, err = db.c.Exec(`INSERT OR IGNORE INTO likes (post_id, liker) VALUES (?, ?)`, postId, likerId)
 
 	if err != nil {
-		var sqliteErr *sqlite3.Error
-		if !errors.As(err, &sqliteErr) || !(sqliteErr.Code == sqlite3.ErrConstraint) {
-			return components.InternalServerError, err
-		}
+		return components.InternalServerError, err
 	}
 
 	var user components.User

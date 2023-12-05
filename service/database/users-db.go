@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
-	"github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -104,9 +104,8 @@ func (db *appdbimpl) SetUsername(id string, old_username string, new_username st
 	_, err = db.c.Exec(`UPDATE users SET username = ? WHERE id = ? and username = ?`, new_username, id, old_username)
 
 	if err != nil {
-		var sqliteErr *sqlite3.Error
-		if errors.As(err, &sqliteErr) && (sqliteErr.Code == sqlite3.ErrConstraint) {
-			return components.InternalServerError, err
+		if strings.HasPrefix(err.Error(), "UNIQUE constraint failed") {
+			return components.ConflictError, nil
 		}
 		return components.InternalServerError, err
 	}
