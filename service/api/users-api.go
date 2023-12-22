@@ -14,7 +14,7 @@ import (
 func (rt *_router) searchUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	userId := r.Header.Get("Authorization")
-	username, err := rt.db.GetUsernameFromId(userId)
+	_, err := rt.db.GetUsernameFromId(userId)
 
 	if err != nil {
 		HandleUserValidationError(err, w, ctx)
@@ -23,7 +23,7 @@ func (rt *_router) searchUsers(w http.ResponseWriter, r *http.Request, ps httpro
 
 	search_username := r.URL.Query().Get("search_term")
 
-	data, err := rt.db.SearchUserBySubString(username, search_username)
+	data, err := rt.db.SearchUserBySubString(userId, search_username)
 
 	if err != nil {
 		HandleResponse(w, ctx, err, "error searching maches", data, http.StatusInternalServerError)
@@ -77,7 +77,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		loggerMessage := "error setting the new username"
 		var httpStatus int
 		if data == components.ConflictError {
-			httpStatus = http.StatusBadRequest
+			httpStatus = http.StatusConflict
 		} else {
 			httpStatus = http.StatusInternalServerError
 		}

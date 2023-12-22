@@ -240,7 +240,7 @@ func (db *appdbimpl) UnlikePhoto(postId string, likerId string) (data string, er
 
 	var user components.User
 
-	err = db.c.QueryRow(`SELECT username FROM users WHERE id = ?`, likerId).Scan(&user)
+	err = db.c.QueryRow(`SELECT username FROM users WHERE id = ?`, likerId).Scan(&user.Username)
 
 	if err != nil {
 		return components.InternalServerError, err

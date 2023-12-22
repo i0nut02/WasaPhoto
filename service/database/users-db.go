@@ -56,7 +56,13 @@ func (db *appdbimpl) ValidUsername(username string) (is_valid bool, err error) {
 }
 
 func (db *appdbimpl) SearchUserBySubString(searcher string, searched_string string) (maches string, err error) {
-	res, err := db.c.Query(`SELECT username FROM users WHERE username LIKE '%'||?||'%' EXCEPT SELECT banisher FROM bans WHERE banished = ? EXCEPT SELECT ?;`, searched_string, searcher, searcher)
+	res, err := db.c.Query(`SELECT username 
+							FROM users 
+							WHERE username LIKE '%'||?||'%' 
+							EXCEPT 
+							SELECT U.username 
+							FROM bans B INNER JOIN users U ON U.id = B.banisher
+							WHERE banished = ? ;`, searched_string, searcher)
 
 	defer func() {
 		if res != nil {
@@ -105,7 +111,7 @@ func (db *appdbimpl) SetUsername(id string, old_username string, new_username st
 
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "UNIQUE constraint failed") {
-			return components.ConflictError, nil
+			return components.ConflictError, err
 		}
 		return components.InternalServerError, err
 	}
