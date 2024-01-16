@@ -290,6 +290,10 @@ export default {
       <h1 class="h2">{{ this.username }} Page</h1>
       <div class="follower-container">
         <div class="count-container">
+          <div class="count">{{ this.posts.length }}</div>
+          <div class="label">posts</div>
+        </div>
+        <div class="count-container">
           <div class="count">{{ this.followers == null ? 0 : this.followers.length }}</div>
           <div class="label">followers</div>
         </div>
