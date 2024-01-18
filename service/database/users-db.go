@@ -173,18 +173,20 @@ func (db *appdbimpl) TakeProfile(username string, usernameProfile string) (profi
 			X2.num_photos,
 			X3.num_followers,
 			X4.num_followed,
-			(SELECT EXISTS (SELECT 1 FROM followers WHERE followed = ? AND follower = ?)) AS is_following
+			(SELECT EXISTS (SELECT 1 FROM followers WHERE followed = ? AND follower = ?)) AS is_following,
+			(SELECT EXISTS (SELECT 1 FROM bans WHERE banisher = ? AND banished = ?)) AS is_banished
 		FROM 
 			(SELECT username FROM users WHERE id = ?) X1,
 			(SELECT COUNT(*) as num_photos FROM posts WHERE author_id = ?) X2,
 			(SELECT COUNT(*) as num_followers FROM followers WHERE followed = ?) X3,
 			(SELECT COUNT(*) as num_followed FROM followers WHERE follower = ?) X4
-			`, usernameProfileId, usernameId, usernameProfileId, usernameProfileId, usernameProfileId, usernameProfileId).Scan(
+			`, usernameProfileId, usernameId, usernameId, usernameProfileId, usernameProfileId, usernameProfileId, usernameProfileId, usernameProfileId).Scan(
 		&userProfile.Username,
 		&userProfile.NumPhotos,
 		&userProfile.NumFollowers,
 		&userProfile.NumFollowed,
 		&userProfile.Following,
+		&userProfile.IsBanished,
 	)
 
 	if err != nil {

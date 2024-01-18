@@ -36,8 +36,9 @@ type UserProfile struct {
 	Username     string `json:"username"`
 	NumPhotos    int    `json:"num_photos"`
 	NumFollowers int    `json:"num_followers"`
-	NumFollowed  int    `json:"num_followed"`
+	NumFollowed  int    `json:"num_following"`
 	Following    bool   `json:"following"`
+	IsBanished    bool   `json:"is_banished"`
 }
 
 func (u *UserProfile) ToJson() ([]byte, error) {

@@ -208,7 +208,7 @@ components:
             the user with the username
           type: integer
           minimum: 0
-        num_followed:
+        num_following:
           description: | 
             number of users that the
             user with the username follow
@@ -219,12 +219,18 @@ components:
             true if the user that request the
             profile is following him
           type: boolean
+        is_banished:
+          description: |
+            true if the user that request the
+            profile is following him
+          type: boolean
       example:
         username: "Alice123"
         num_photos: 30
         num_followers: 100
         num_followed: 50
         following: true
+        is_banished: true
 
     CommentContent:
       type: object

@@ -5,7 +5,7 @@ export default {
       errmsg: null,
       username: null,
       self_profile: false,
-      is_banned: false,
+      is_banished: false,
       followers: null,
       following: null,
       is_followed: false,
@@ -27,31 +27,21 @@ export default {
       }
 
       try {
-        let response = await this.$axios.get("/users/" + this.$user.username + "/bans/", {
+        let response = await this.$axios.get("/users/" + this.$user.username + "/profile/", {
           headers: {
             "Authorization": this.$user.token
           }
         });
 
-        this.is_banned = response.data.map(x => x["username_string"]).includes(this.username);
+        this.is_banished = response.data.is_banished
 
-        response = await this.$axios.get("/users/" + this.username + "/followers", {
-          headers: {
-            "Authorization": this.$user.token
-          }
-        });
+        this.followers = response.data.num_followers;
 
-        this.followers = response.data;
+        this.is_followed = response.data.following;
 
-        this.is_followed = this.followers.map(x => x["username_string"]).includes(this.$user.username);
+        this.following = response.data.num_following;
 
-        response = await this.$axios.get("/users/" + this.username + "/following/", {
-          headers: {
-            "Authorization": this.$user.token
-          }
-        });
-
-        this.following = response.data;
+        console.log(response);
 
         response = await this.$axios.get("/users/" + this.username + "/profile/posts/", {
           headers: {
@@ -98,7 +88,7 @@ export default {
       switch (response.status) {
         case 200:
           this.is_followed = true;
-          this.followers.push({ "username_string": this.$user.username });
+          this.followers += 1;
           break;
         case 400:
           this.errmsg = "Bad request";
@@ -130,9 +120,7 @@ export default {
       switch (response.status) {
         case 204:
           this.is_followed = false;
-          this.followers = this.followers.filter(follower => {
-            return follower.username_string !== this.$user.username;
-          });
+          this.followers -= 1;
           break;
         case 400:
           this.errmsg = "Bad request";
@@ -163,7 +151,7 @@ export default {
 
       switch (response.status) {
         case 200:
-          this.is_banned = true;
+          this.is_banished = true;
           break;
         case 400:
           this.errmsg = "Bad request";
@@ -194,7 +182,7 @@ export default {
 
       switch (response.status) {
         case 200:
-          this.is_banned = false;
+          this.is_banished = false;
           break;
         case 400:
           this.errmsg = "Bad request";
@@ -294,11 +282,11 @@ export default {
           <div class="label">posts</div>
         </div>
         <div class="count-container">
-          <div class="count">{{ this.followers == null ? 0 : this.followers.length }}</div>
+          <div class="count">{{ this.followers }}</div>
           <div class="label">followers</div>
         </div>
         <div class="count-container">
-          <div class="count">{{ this.following == null ? 0 : this.following.length }}</div>
+          <div class="count">{{ this.following }}</div>
           <div class="label">following</div>
         </div>
       </div>
@@ -309,7 +297,7 @@ export default {
           </button>
         </div>
         <div v-if="username !== $user.username" class="btn-group me-2">
-          <button v-if="is_banned" type="button" class="btn btn-sm btn-outline-primary" @click="unban">
+          <button v-if="is_banished" type="button" class="btn btn-sm btn-outline-primary" @click="unban">
             Unban
           </button>
           <button v-else type="button" class="btn btn-sm btn-outline-primary" @click="ban">
