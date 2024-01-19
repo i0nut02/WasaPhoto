@@ -290,6 +290,11 @@ export default {
           <div class="label">following</div>
         </div>
       </div>
+      <div class="btn-group me-2 mb-md-0">
+					<button type="button" class="btn btn-sm btn-outline-secondary" @click="refresh">
+						Refresh
+					</button>
+      </div>
       <div class="btn-toolbar mb-2 mb-md-0">
         <div v-if="username == $user.username" class="btn-group me-2">
           <button type="button" class="btn btn-sm btn-outline-primary" @click="ChangeName">
