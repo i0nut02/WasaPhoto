@@ -162,52 +162,6 @@ func (db *appdbimpl) GetPost(post_id string, id string) (data string, err error)
 	return string(jsonData), nil
 }
 
-func (db *appdbimpl) GetLikes(postId string, userId string) (data string, err error) {
-	rows, err := db.c.Query(`SELECT U.username 
-							 FROM users U
-							 INNER JOIN likes L
-							 ON U.id = L.liker
-							 WHERE L.post_id = ?
-							 EXCEPT
-							 SELECT U.username
-							 FROM users U
-							 INNER JOIN bans B
-							 ON U.id = B.banisher
-							 WHERE B.banished = ?`, postId, userId)
-
-	if err != nil {
-		return components.InternalServerError, err
-	}
-
-	var userList []components.User
-
-	for rows.Next() {
-		if err = rows.Err(); err != nil {
-			return components.InternalServerError, err
-		}
-		var user components.User
-
-		err = rows.Scan(&user.Username)
-
-		if err != nil {
-			return components.InternalServerError, err
-		}
-
-		userList = append(userList, user)
-	}
-
-	jsonData, err := json.Marshal(userList)
-
-	if err != nil {
-		return components.InternalServerError, err
-	}
-
-	if string(jsonData) == EmptyJsonArray {
-		return "[]", nil
-	}
-	return string(jsonData), nil
-}
-
 func (db *appdbimpl) LikePhoto(postId string, likerId string) (data string, err error) {
 	_, err = db.c.Exec(`INSERT OR IGNORE INTO likes (post_id, liker) VALUES (?, ?)`, postId, likerId)
 

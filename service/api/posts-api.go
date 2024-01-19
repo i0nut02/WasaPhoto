@@ -213,35 +213,6 @@ func (rt *_router) deletePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 	HandleResponse(w, ctx, nil, "", data, http.StatusNoContent)
 }
 
-func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	id := r.Header.Get("Authorization")
-
-	usernameReq := ps.ByName("username")
-
-	postId := ps.ByName("post_id")
-
-	response, httpResponse, err := rt.checkUserAccesAndPostAuthor(id, usernameReq, postId)
-
-	if err != nil {
-		HandleResponse(w, ctx, err, "error managing Url and session permissions", response, httpResponse)
-		return
-	}
-
-	if httpResponse != -1 {
-		HandleResponse(w, ctx, nil, "", response, httpResponse)
-		return
-	}
-
-	data, err := rt.db.GetLikes(postId, id)
-
-	if err != nil {
-		HandleResponse(w, ctx, err, "error retriving likers list", data, http.StatusInternalServerError)
-		return
-	}
-
-	HandleResponse(w, ctx, nil, "", data, http.StatusOK)
-}
-
 func (rt *_router) likePhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	id := r.Header.Get("Authorization")
 
