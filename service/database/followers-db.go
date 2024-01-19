@@ -1,8 +1,6 @@
 package database
 
 import (
-	"encoding/json"
-
 	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api/components"
 )
 
