@@ -8,33 +8,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt _router) getBans(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	id := r.Header.Get("Authorization")
-
-	usernameId, err := rt.db.GetUsernameFromId(id)
-
-	if err != nil {
-		HandleUserValidationError(err, w, ctx)
-		return
-	}
-
-	usernameURL := ps.ByName("username")
-
-	if usernameId != usernameURL {
-		HandleResponse(w, ctx, nil, "", components.UnauthorizedError, http.StatusUnauthorized)
-		return
-	}
-
-	data, err := rt.db.GetBanned(id)
-
-	if err != nil {
-		HandleResponse(w, ctx, err, "error retrieving banned", data, http.StatusInternalServerError)
-		return
-	}
-
-	HandleResponse(w, ctx, nil, "", data, http.StatusOK)
-}
-
 func (rt _router) banUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	id := r.Header.Get("Authorization")
 

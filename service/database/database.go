@@ -61,8 +61,6 @@ type AppDatabase interface {
 
 	GetStream(id string, offset int, limit int) (data string, err error)
 
-	GetBanned(id string) (data string, err error)
-
 	BanUser(idBanisher string, idBanished string) (data string, err error)
 	UnbanUser(idBanisher string, idBanished string) (data string, err error)
 
@@ -76,8 +74,6 @@ type AppDatabase interface {
 
 	ValidPostAuthor(postId string, author string) (isValid bool, err error)
 
-	GetLikes(postId string, userId string) (data string, err error)
-
 	LikePhoto(postId string, likerId string) (data string, err error)
 
 	UnlikePhoto(postId string, likerId string) (data string, err error)
@@ -87,10 +83,6 @@ type AppDatabase interface {
 	CommentPhoto(postId string, userId string, comment string) (data string, err error)
 
 	UncommentPhoto(commentId string) (data string, err error)
-
-	GetFollowers(username string, requestedId string) (data string, err error)
-
-	GetFollowing(username string, requestedId string) (data string, err error)
 
 	FollowUser(followerId string, followedId string) (data string, err error)
 
