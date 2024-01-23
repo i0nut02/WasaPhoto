@@ -57,15 +57,14 @@ export default {
             Authorization: this.$user.token
           }
         });
-        if (response.status == 201){
-          this.successmsg = "the post is uploaded";
-          this.errormsg = null;
-        } else {
-          this.errormsg = response.data.response;
-          this.successmsg = null;
-        }
+        this.successmsg = "the post is uploaded";
+        this.errormsg = null;
       } catch(e) {
-        this.errormsg = e.toString();
+        if (e.response) {
+          this.errormsg = e.response.data.response;
+        } else {
+          this.errormsg = e.toString();
+        }
         this.successmsg = null;
       }
     },

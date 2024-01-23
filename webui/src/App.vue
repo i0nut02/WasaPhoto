@@ -37,15 +37,14 @@
           };
           try {
             let response = await this.$axios.get("/users/?search_term=" + search, { headers: { "Authorization": searcher_id } });
-
-            if (response.status == 200) {
               this.search_results = response.data;
-            } else {
-              this.search_results = null;
-              this.errormsg = response.data.response;
-            }
           } catch(e) {
-            this.errormsg = e.toString();
+            if (e.response) {
+              this.search_results = null;
+              this.errormsg = e.response.data.response;
+            } else {
+              this.errormsg = e.toString();
+            }
           }
         } else {
           this.search_results = null;

@@ -49,13 +49,13 @@ export default {
                         "Authorization": this.$user.token
                     }
                 });
-                if (response.status == 200) {
-                    this.comments = response.data;
-                } else {
-                    this.errormsg = response.data.response;
-                }
+                this.comments = response.data;
             } catch (e) {
-                this.errormsg = e.toString();
+                if (e.response) {
+                    this.errormsg = e.response.data.response;
+                } else {
+                    this.errormsg = e.toString();
+                }
             }
         },
 
@@ -66,13 +66,14 @@ export default {
                             "Authorization": this.$user.token
                     }
                 });
-                if (response.status == 204) {
-                    this.$emit("delete-post", this.post_data);
-                } else {
-                    this.errormsg = response.data.response;
-                }
+                this.$emit("delete-post", this.post_data);
+                
             } catch(e) {
-                this.errormsg = e.toString();
+                if (e.response) {
+                    this.errormsg = e.response.data.response;
+                } else {
+                    this.errormsg = e.toString();
+                }
             }
         },
 
@@ -83,16 +84,16 @@ export default {
                         Authorization: this.$user.token
                     }
                 });
-                if (response.status == 200) {
-                    if (this.user_liked == false) {
-                        this.likes += 1;
-                    }
-                    this.user_liked = true;
-                } else {
-                    this.errormsg = response.data.response;
+                if (this.user_liked == false) {
+                    this.likes += 1;
                 }
+                this.user_liked = true;
             } catch (e) {
-                this.errormsg = e.toString();
+                if (e.response){
+                    this.errormsg = e.response.data.response;
+                } else {
+                    this.errormsg = e.toString();
+                }
             }
         },
 
@@ -103,16 +104,16 @@ export default {
                         "Authorization": this.$user.token
                     }
                 });
-                if (response.status == 204) {
-                    if (this.user_liked == true) {
-                        this.likes -= 1;
-                    }
-                    this.user_liked = false;
-                } else {
-                    this.errormsg = response.data.response;
+                if (this.user_liked == true) {
+                    this.likes -= 1;
                 }
+                this.user_liked = false;
             } catch(e) {
-                this.errormsg = e.toString();
+                if (e.response) {
+                    this.errormsg = e.response.data.response;
+                } else {
+                    this.errormsg = e.toString();
+                }
             }
         },
 
@@ -125,13 +126,13 @@ export default {
                     { "comment" : this.newCommentText }, { headers: {
                                                 "Authorization" : this.$user.token
                 }});
-                if (response.status == 201) {
-                    this.comments.push(response.data);
-                } else {
-                    this.errormsg = response.data.response;
-                }
+                this.comments.push(response.data);
             } catch(e) {
-                this.errormsg = e.toString();
+                if (e.response) {
+                    this.errormsg = response.data.response;
+                } else {
+                    this.errormsg = e.toString();
+                }
             }
         },
 
@@ -141,13 +142,13 @@ export default {
                     { headers: {
                                     "Authorization" : this.$user.token
                     }});
-                if (response.status == 200) {
-                    this.comments = this.comments.filter((c) => c.id != comment.id);
-                } else {
-                    this.errormsg = response.data.response;
-                }
+                this.comments = this.comments.filter((c) => c.id != comment.id);
             } catch(e) {
-                this.errormsg = e.toString();
+                if (e.response) {
+                    this.errormsg = e.response.data.response;
+                } else {
+                    this.errormsg = e.toString();
+                }
             }
         },
     },

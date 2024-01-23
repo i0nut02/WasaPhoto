@@ -22,17 +22,16 @@ export default {
       } else {
         try {
           let response = await this.$axios.post("/session", { username_string: this.username });
+          this.$user.token = response.data["user_id"];
+          this.$user.username = this.username;
 
-          if (response.status == 201) {
-            this.$user.token = response.data["user_id"];
-            this.$user.username = this.username;
-
-            this.$router.push('/stream/' + this.$user.username);
-          } else {
-            this.errormsg = response.data.response;
-          }
+          this.$router.push('/stream/' + this.$user.username);
         } catch(e) {
-          this.errormsg = e.toString();
+          if (e.response) {
+            this.errormsg = e.response.data.response;
+          } else {
+            this.errormsg = e.toString();
+          }
         }
       }
     },

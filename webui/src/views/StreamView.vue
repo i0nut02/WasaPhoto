@@ -61,13 +61,13 @@
               "Authorization": this.$user.token
             }
           });
-          if (response.status == 200){
             return response.data;
-          } else {
-            this.errormsg = response.data.response;
-          }
         } catch(e) {
-          this.errormsg = e.toString();
+          if (e.response) {
+            this.errormsg = e.response.data.response;
+          } else {
+            this.errormsg = e.toString();
+        }
         }
         return null;
       },

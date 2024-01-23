@@ -32,35 +32,29 @@ export default {
             "Authorization": this.$user.token
           }
         });
-        if (response.status == 200) {
-          this.is_banished = response.data.is_banished
+        this.is_banished = response.data.is_banished
 
-          this.followers = response.data.num_followers;
+        this.followers = response.data.num_followers;
 
-          this.is_followed = response.data.following;
+        this.is_followed = response.data.following;
 
-          this.following = response.data.num_following;
-        } else if (response.state == 403){
-          this.forbidden = true;
-        } else {
-          this.errormsg = response.data.response;
-          return;
-        }
-
+        this.following = response.data.num_following;
 
         response = await this.$axios.get("/users/" + this.username + "/profile/posts/", {
           headers: {
             "Authorization": this.$user.token
           }
         });
-        if (response.status == 200) {
-          this.posts = response.data;
-        } else {
-          this.errormsg = response.data.response;
-          return;
-        }
+        this.posts = response.data;
       } catch(e) {
-          this.errormsg = e.toString();
+          if (e.response) {
+            this.errormsg = e.response.data.response;
+            if (e.response.status == 403) {
+              this.forbidden = true;
+            }
+          } else {
+            this.errormsg = e.toString();
+          }
       }
     },
 
@@ -71,14 +65,14 @@ export default {
             Authorization: this.$user.token
           }
         });
-        if (response.status == 200){
-          this.is_followed = true;
-          this.followers += 1;
-        } else {
-          this.errormsg = response.data.errormsg;
-        }
+        this.is_followed = true;
+        this.followers += 1;
       } catch(e) {
+        if (e.response) {
+          this.errormsg = e.response.data.response;
+        } else {
           this.errormsg = e.toString();
+        }
       }
     },
 
@@ -89,14 +83,14 @@ export default {
             Authorization: this.$user.token
           }
         });
-        if (response.status == 204) {
-          this.is_followed = false;
-          this.followers -= 1;
-        } else {
-          this.errormsg = response.data.response;
-        }
+        this.is_followed = false;
+        this.followers -= 1;
       } catch(e) {
+        if (e.response) {
+          this.errormsg = e.response.data.response;
+        } else {
           this.errormsg = e.toString();
+        }
       }
     },
 
@@ -107,13 +101,13 @@ export default {
             Authorization: this.$user.token
           }
         });
-        if (response.status == 200) {
-          this.is_banished = true;
-        } else {
-          this.errormsg = response.data.response;
-        }
+        this.is_banished = true;
       } catch(e) {
-          this.errormsg = e.toString;
+        if (e.response) {
+          this.errormsg = e.response.data.response;
+        } else {
+          this.errormsg = e.toString();
+        }
       }
     },
 
@@ -124,13 +118,13 @@ export default {
             Authorization: this.$user.token
           }
         });
-        if (response.status == 200) {
-          this.is_banished = false;
-        } else {
-          this.errormsg = response.data.response;
-        }
+        this.is_banished = false;
       } catch(e) {
+        if (e.response) {
+          this.errormsg = e.response.data.response;
+        } else {
           this.errormsg = e.toString();
+        }
       }
     },
 
@@ -160,16 +154,17 @@ export default {
             Authorization: this.$user.token
           }
         });
-        if (response.status == 200){
-          this.$user.username = new_name;
-          this.username = new_name;
+        this.$user.username = new_name;
+        this.username = new_name;
 
-          this.$router.push("/profile/" + new_name);
-        } else {
-          this.errormsg = response.data.response;
-        }
+        this.$router.push("/profile/" + new_name);
+        
       } catch (e) {
+        if (e.response) {
+          this.errormsg = e.response.data.response;
+        } else {
           this.errormsg = e.toString();
+        }
       }
     },
   },
