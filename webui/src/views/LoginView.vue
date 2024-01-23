@@ -16,6 +16,7 @@ export default {
     },
 
     async doLogin() {
+      this.username = this.username.trim();
       if (!this.username.match("^[a-zA-Z0-9_.]{3,20}$")) {
         this.errormsg = "Username must contain: from 3 to 20 characters and just alphanumeric characters or \"_.\"";
       } else {
@@ -27,18 +28,11 @@ export default {
             this.$user.username = this.username;
 
             this.$router.push('/stream/' + this.$user.username);
-          }
-        } catch (e) {
-          if (e.response && e.response.status === 400) {
-            this.errormsg = "Form error, please check all fields and try again. If you think that this is an error, write an e-mail to us.";
-            this.detailedmsg = null;
-          } else if (e.response && e.response.status === 500) {
-            this.errormsg = "An internal error occurred. We will be notified. Please try again later.";
-            this.detailedmsg = e.toString();
           } else {
-            this.errormsg = e.toString();
-            this.detailedmsg = null;
+            this.errormsg = response.data.response;
           }
+        } catch(e) {
+          this.errormsg = e.toString();
         }
       }
     },

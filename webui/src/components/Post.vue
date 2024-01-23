@@ -49,106 +49,70 @@ export default {
                         "Authorization": this.$user.token
                     }
                 });
-
-                this.comments = response.data;
-
-            } catch (e) {
-                if (e.response && e.response.status === 400) {
-                    this.errormsg = "Form error, please check all fields and try again. If you think that this is an error, write an e-mail to us.";
-                } else if (e.response && e.response.status === 500) {
-                    this.errormsg = "An internal error occurred. We will be notified. Please try again later.";
+                if (response.status == 200) {
+                    this.comments = response.data;
                 } else {
-                    this.errormsg = e.toString();
+                    this.errormsg = response.data.response;
                 }
+            } catch (e) {
+                this.errormsg = e.toString();
             }
         },
 
         async deletePost() {
-            let response = await this.$axios.delete("/users/" + this.author + "/profile/posts/" + this.photo_id + "/", {
-                headers: {
-                        "Authorization": this.$user.token
-                }
-            });
-            switch (response.status) {
-                case 204:
+            try {
+                let response = await this.$axios.delete("/users/" + this.author + "/profile/posts/" + this.photo_id + "/", {
+                    headers: {
+                            "Authorization": this.$user.token
+                    }
+                });
+                if (response.status == 204) {
                     this.$emit("delete-post", this.post_data);
-                    break;
-                case 400:
-                    this.errmsg = "Bad request";
-                    break;
-                case 401:
-                    this.errmsg = "Unauthorized";
-                    break;
-                case 404:
-                    this.errmsg = "Not found";
-                    break;
-                case 500:
-                    this.errmsg = "Internal server error";
-                    break;
-                default:
-                    this.errmsg = "Unhandled response code";
-            };
+                } else {
+                    this.errormsg = response.data.response;
+                }
+            } catch(e) {
+                this.errormsg = e.toString();
+            }
         },
 
         async like() {
-            let response = await this.$axios.put("/users/" + this.author + "/profile/posts/" + this.photo_id + "/likes/" + this.$user.token, {}, {
-                headers: {
-                    Authorization: this.$user.token
-                }
-            });
-
-            switch (response.status) {
-                case 200:
+            try {
+                let response = await this.$axios.put("/users/" + this.author + "/profile/posts/" + this.photo_id + "/likes/" + this.$user.token, {}, {
+                    headers: {
+                        Authorization: this.$user.token
+                    }
+                });
+                if (response.status == 200) {
                     if (this.user_liked == false) {
                         this.likes += 1;
                     }
                     this.user_liked = true;
-                    break;
-                case 400:
-                    this.errmsg = "Bad request";
-                    break;
-                case 401:
-                    this.errmsg = "Unauthorized";
-                    break;
-                case 404:
-                    this.errmsg = "Not found";
-                    break;
-                case 500:
-                    this.errmsg = "Internal server error";
-                    break;
-                default:
-                    this.errmsg = "Unhandled response code";
+                } else {
+                    this.errormsg = response.data.response;
+                }
+            } catch (e) {
+                this.errormsg = e.toString();
             }
         },
 
         async unlike() {
-            let response = await this.$axios.delete("/users/" + this.author + "/profile/posts/" + this.photo_id + "/likes/" + this.$user.token, {
-                headers: {
-                    "Authorization": this.$user.token
-                }
-            });
-
-            switch (response.status) {
-                case 204:
+            try {
+                let response = await this.$axios.delete("/users/" + this.author + "/profile/posts/" + this.photo_id + "/likes/" + this.$user.token, {
+                    headers: {
+                        "Authorization": this.$user.token
+                    }
+                });
+                if (response.status == 204) {
                     if (this.user_liked == true) {
                         this.likes -= 1;
                     }
                     this.user_liked = false;
-                    break;
-                case 400:
-                    this.errmsg = "Bad request";
-                    break;
-                case 401:
-                    this.errmsg = "Unauthorized";
-                    break;
-                case 404:
-                    this.errmsg = "Not found";
-                    break;
-                case 500:
-                    this.errmsg = "Internal server error";
-                    break;
-                default:
-                    this.errmsg = "Unhandled response code";
+                } else {
+                    this.errormsg = response.data.response;
+                }
+            } catch(e) {
+                this.errormsg = e.toString();
             }
         },
 
@@ -156,55 +120,34 @@ export default {
             if (this.newCommentText.trim() == ""){
                 return;
             }
-            let response = await this.$axios.post("/users/" + this.author + "/profile/posts/" + this.photo_id + "/comments/", 
-                { "comment" : this.newCommentText }, { headers: {
-                                            "Authorization" : this.$user.token
+            try {
+                let response = await this.$axios.post("/users/" + this.author + "/profile/posts/" + this.photo_id + "/comments/", 
+                    { "comment" : this.newCommentText }, { headers: {
+                                                "Authorization" : this.$user.token
                 }});
-
-            switch (response.status) {
-                case 201:
+                if (response.status == 201) {
                     this.comments.push(response.data);
-                    break;
-                case 400:
-                    this.errmsg = "Bad request";
-                    break;
-                case 401:
-                    this.errmsg = "Unauthorized";
-                    break;
-                case 404:
-                    this.errmsg = "Not found";
-                    break;
-                case 500:
-                    this.errmsg = "Internal server error";
-                    break;
-                default:
-                    this.errmsg = "Unhandled response code";
+                } else {
+                    this.errormsg = response.data.response;
+                }
+            } catch(e) {
+                this.errormsg = e.toString();
             }
         },
 
         async deleteComment(comment) {
-            let response = await this.$axios.delete("/users/" + this.author + "/profile/posts/" + this.photo_id + "/comments/" + comment.id, 
-                { headers: {
-                                "Authorization" : this.$user.token
-                }});
-            switch (response.status) {
-                case 200:
+            try {
+                let response = await this.$axios.delete("/users/" + this.author + "/profile/posts/" + this.photo_id + "/comments/" + comment.id, 
+                    { headers: {
+                                    "Authorization" : this.$user.token
+                    }});
+                if (response.status == 200) {
                     this.comments = this.comments.filter((c) => c.id != comment.id);
-                    break;
-                case 400:
-                    this.errmsg = "Bad request";
-                    break;
-                case 401:
-                    this.errmsg = "Unauthorized";
-                    break;
-                case 404:
-                    this.errmsg = "Not found";
-                    break;
-                case 500:
-                    this.errmsg = "Internal server error";
-                    break;
-                default:
-                    this.errmsg = "Unhandled response code";
+                } else {
+                    this.errormsg = response.data.response;
+                }
+            } catch(e) {
+                this.errormsg = e.toString();
             }
         },
     },

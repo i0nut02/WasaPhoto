@@ -57,28 +57,15 @@ export default {
             Authorization: this.$user.token
           }
         });
-        switch (response.status) {
-          case 201:
-            this.successmsg = "the post is uploaded";
-            this.errormsg = null;
-            break;
-          case 400:
-            this.errmsg = "Bad request";
-            break;
-          case 401:
-            this.errmsg = "Unauthorized";
-            break;
-          case 404:
-            this.errmsg = "Not found";
-            break;
-          case 500:
-            this.errmsg = "Internal server error";
-            break;
-          default:
-            this.errmsg = "Unhandled response code";
+        if (response.status == 201){
+          this.successmsg = "the post is uploaded";
+          this.errormsg = null;
+        } else {
+          this.errormsg = response.data.response;
+          this.successmsg = null;
         }
-      } catch (error) {
-        this.errormsg = 'Failed to upload post. Please try again.';
+      } catch(e) {
+        this.errormsg = e.toString();
         this.successmsg = null;
       }
     },

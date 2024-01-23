@@ -55,29 +55,19 @@
       },
 
       async getStream(start) {
-        let response = await this.$axios.get("/users/" + this.$user.username + "/stream?from=" + start + "&max_quantity=" + "10", {
-          headers: {
-            "Authorization": this.$user.token
-          }
-        });
-
-        switch (response.status) {
-          case 200:
+        try {
+          let response = await this.$axios.get("/users/" + this.$user.username + "/stream?from=" + start + "&max_quantity=" + "10", {
+            headers: {
+              "Authorization": this.$user.token
+            }
+          });
+          if (response.status == 200){
             return response.data;
-          case 400:
-            this.errmsg = "Bad request";
-            break;
-          case 401:
-            this.errmsg = "Unauthorized";
-            break;
-          case 404:
-            this.errmsg = "Not found";
-            break;
-          case 500:
-            this.errmsg = "Internal server error";
-            break;
-          default:
-            this.errmsg = "Unhandled response code";
+          } else {
+            this.errormsg = response.data.response;
+          }
+        } catch(e) {
+          this.errormsg = e.toString();
         }
         return null;
       },

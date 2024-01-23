@@ -2,7 +2,7 @@
 export default {
   data: function() {
     return {
-      errmsg: null,
+      errormsg: null,
       username: null,
       self_profile: false,
       is_banished: false,
@@ -32,175 +32,103 @@ export default {
             "Authorization": this.$user.token
           }
         });
+        if (response.status == 200) {
+          this.is_banished = response.data.is_banished
 
-        this.is_banished = response.data.is_banished
+          this.followers = response.data.num_followers;
 
-        this.followers = response.data.num_followers;
+          this.is_followed = response.data.following;
 
-        this.is_followed = response.data.following;
+          this.following = response.data.num_following;
+        } else {
+          this.errormsg = response.data.response;
+          return;
+        }
 
-        this.following = response.data.num_following;
-
-        console.log(response);
 
         response = await this.$axios.get("/users/" + this.username + "/profile/posts/", {
           headers: {
             "Authorization": this.$user.token
           }
         });
-
-        this.posts = response.data;
-
-      } catch (e) {
-        if (e.response && e.response.status) {
-          switch (e.response.status) {
-            case 400:
-              this.errmsg = "Bad request";
-              break;
-            case 401:
-              this.errmsg = "Unauthorized";
-              break;
-            case 403:
-              this.forbidden = true;
-              break;
-            case 404:
-              this.errmsg = "Not found";
-              break;
-            case 500:
-              this.errmsg = "Internal server error";
-              break;
-            default:
-              this.errmsg = "Unhandled response code";
-          }
+        if (response.status == 200) {
+          this.posts = response.data;
         } else {
-          this.errmsg = "An unexpected error occurred. Please try again later."
+          this.errormsg = response.data.response;
+          return;
         }
+      } catch(e) {
+          this.errormsg = e.toString();
       }
     },
 
     async follow() {
-      let response = await this.$axios.put("/users/" + this.$user.username + "/following/" + this.username, {}, {
-        headers: {
-          Authorization: this.$user.token
-        }
-      });
-
-      switch (response.status) {
-        case 200:
+      try {
+        let response = await this.$axios.put("/users/" + this.$user.username + "/following/" + this.username, {}, {
+          headers: {
+            Authorization: this.$user.token
+          }
+        });
+        if (response.status == 200){
           this.is_followed = true;
           this.followers += 1;
-          break;
-        case 400:
-          this.errmsg = "Bad request";
-          break;
-        case 401:
-          this.errmsg = "Unauthorized";
-          break;
-        case 403:
-          this.forbidden = true;
-          break;
-        case 404:
-          this.errmsg = "Not found";
-          break;
-        case 500:
-          this.errmsg = "Internal server error";
-          break;
-        default:
-          this.errmsg = "Unhandled response code";
+        } else {
+          this.errormsg = response.data.errormsg;
+        }
+      } catch(e) {
+          this.errormsg = e.toString();
       }
     },
 
     async unfollow() {
-      const response = await this.$axios.delete("/users/" + this.$user.username + "/following/" + this.username, {
-        headers: {
-          Authorization: this.$user.token
-        }
-      });
-
-      switch (response.status) {
-        case 204:
+      try {
+        let response = await this.$axios.delete("/users/" + this.$user.username + "/following/" + this.username, {
+          headers: {
+            Authorization: this.$user.token
+          }
+        });
+        if (response.status == 204) {
           this.is_followed = false;
           this.followers -= 1;
-          break;
-        case 400:
-          this.errmsg = "Bad request";
-          break;
-        case 401:
-          this.errmsg = "Unauthorized";
-          break;
-        case 403:
-          this.forbidden = true;
-          break;
-        case 404:
-          this.errmsg = "Not found";
-          break;
-        case 500:
-          this.errmsg = "Internal server error";
-          break;
-        default:
-          this.errmsg = "Unhandled response code";
+        } else {
+          this.errormsg = response.data.response;
+        }
+      } catch(e) {
+          this.errormsg = e.toString();
       }
     },
 
     async ban() {
-      const response = await this.$axios.put("/users/" + this.$user.username + "/bans/" + this.username, {}, {
-        headers: {
-          Authorization: this.$user.token
-        }
-      });
-
-      switch (response.status) {
-        case 200:
+      try {
+        let response = await this.$axios.put("/users/" + this.$user.username + "/bans/" + this.username, {}, {
+          headers: {
+            Authorization: this.$user.token
+          }
+        });
+        if (response.status == 200) {
           this.is_banished = true;
-          break;
-        case 400:
-          this.errmsg = "Bad request";
-          break;
-        case 401:
-          this.errmsg = "Unauthorized";
-          break;
-        case 403:
-          this.forbidden = true;
-          break;
-        case 404:
-          this.errmsg = "Not found";
-          break;
-        case 500:
-          this.errmsg = "Internal server error";
-          break;
-        default:
-          this.errmsg = "Unhandled response code";
+        } else {
+          this.errormsg = response.data.response;
+        }
+      } catch(e) {
+          this.errormsg = e.toString;
       }
     },
 
     async unban() {
-      const response = await this.$axios.delete("/users/" + this.$user.username + "/bans/" + this.username, {
-        headers: {
-          Authorization: this.$user.token
-        }
-      });
-
-      switch (response.status) {
-        case 200:
+      try {
+        let response = await this.$axios.delete("/users/" + this.$user.username + "/bans/" + this.username, {
+          headers: {
+            Authorization: this.$user.token
+          }
+        });
+        if (response.status == 200) {
           this.is_banished = false;
-          break;
-        case 400:
-          this.errmsg = "Bad request";
-          break;
-        case 401:
-          this.errmsg = "Unauthorized";
-          break;
-        case 403:
-          this.forbidden = true;
-          break;
-        case 404:
-          this.errmsg = "Not found";
-          break;
-        case 500:
-          this.errmsg = "Internal server error";
-          break;
-        default:
-          this.errmsg = "Unhandled response code";
+        } else {
+          this.errormsg = response.data.response;
+        }
+      } catch(e) {
+          this.errormsg = e.toString();
       }
     },
 
@@ -225,40 +153,21 @@ export default {
       };
 
       try {
-        const response = await this.$axios.put("/users/" + this.$user.username + "/set_username", request_body, {
+        let response = await this.$axios.put("/users/" + this.$user.username + "/set_username", request_body, {
           headers: {
             Authorization: this.$user.token
           }
         });
-        this.$user.username = new_name;
-        this.username = new_name;
+        if (response.status == 200){
+          this.$user.username = new_name;
+          this.username = new_name;
 
-        this.$router.push("/profile/" + new_name);
-      } catch (e) {
-        if (e && e.response) {
-          switch (e.response.status) {
-            case 400:
-              this.errmsg = "Bad request";
-              break;
-            case 401:
-              this.errmsg = "Unauthorized";
-              break;
-            case 403:
-              this.forbidden = true;
-              break;
-            case 404:
-              this.errmsg = "Not found";
-              break;
-            case 409:
-              this.errmsg = "Already exist a user with that username";
-              break;
-            case 500:
-              this.errmsg = "Internal server error";
-              break;
-            default:
-              this.errmsg = "Unhandled response code";
-          }
+          this.$router.push("/profile/" + new_name);
+        } else {
+          this.errormsg = response.data.response;
         }
+      } catch (e) {
+          this.errormsg = e.toString();
       }
     },
   },
@@ -319,7 +228,7 @@ export default {
         </div>
       </div>
     </div>
-    <ErrorMsg v-if="errmsg" :msg="errmsg"></ErrorMsg>
+    <ErrorMsg v-if="errormsg" :msg="errormsg"></ErrorMsg>
     <PostsList :posts="posts" :key="username" @delete-post="deletePost"></PostsList>
   </div>
 </template>

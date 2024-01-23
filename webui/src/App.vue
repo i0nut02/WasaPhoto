@@ -7,6 +7,7 @@
     data: function () {
       return {
         search_results: null,
+        errormsg: null,
       }
     },
 
@@ -34,13 +35,17 @@
           const header = {
             "Authorization": searcher_id
           };
+          try {
+            let response = await this.$axios.get("/users/?search_term=" + search, { headers: { "Authorization": searcher_id } });
 
-          let response = await this.$axios.get("/users/?search_term=" + search, { headers: { "Authorization": searcher_id } });
-
-          if (response.status == 200) {
-            this.search_results = response.data;
-          } else {
-            this.search_results = null;
+            if (response.status == 200) {
+              this.search_results = response.data;
+            } else {
+              this.search_results = null;
+              this.errormsg = response.data.response;
+            }
+          } catch(e) {
+            this.errormsg = e.toString();
           }
         } else {
           this.search_results = null;
@@ -112,6 +117,7 @@
 
                 <div class="dropdown mt-5 position-absolute" style="left: 10px;">
                   <ul class="list-group custom-select w-10">
+                    <ErrorMsg v-if="errormsg" :msg="errormsg"></ErrorMsg>
                     <li v-for="user in search_results" :key="user['username-string']" class="list-group-item align-middle" style="left-margin: 20px;">
                       <RouterLink class="text-dark text-decoration-none m-0" :to="'/profile/' + user['username_string']">
                         <span class="d-inline-block text-left">{{ user['username_string'] }}</span>
