@@ -40,6 +40,8 @@ export default {
           this.is_followed = response.data.following;
 
           this.following = response.data.num_following;
+        } else if (response.state == 403){
+          this.forbidden = true;
         } else {
           this.errormsg = response.data.response;
           return;
