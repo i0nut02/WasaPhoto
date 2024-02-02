@@ -27,7 +27,7 @@ export default {
       }
 
       try {
-        let response = await this.$axios.get("/users/" + this.$user.username + "/profile/", {
+        let response = await this.$axios.get("/users/" + this.username + "/profile/", {
           headers: {
             "Authorization": this.$user.token
           }
