@@ -16,7 +16,7 @@ export default {
   methods: {
     async refresh() {
       this.username = this.$route.params.username;
-
+      this.posts = [];
       if (this.$user.username == null) {
         this.$router.push("/");
         return;

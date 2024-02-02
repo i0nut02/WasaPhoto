@@ -19,6 +19,8 @@
         }
 
         this.stream_top = 0;
+        this.stram = [];
+        this.new_posts = true;
         this.loading = true;
         this.errormsg = null;
 
