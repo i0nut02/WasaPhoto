@@ -18,6 +18,7 @@
           return;
         }
 
+        this.stream_top = 0;
         this.loading = true;
         this.errormsg = null;
 
