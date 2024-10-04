@@ -301,7 +301,7 @@ components:
             upload_time: "2023-11-10T13:45:00Z"
     
     Response:
-      title: Rersonse
+      title: Response
       description: A response message, it contains a code and a message
       type: object
       properties:
